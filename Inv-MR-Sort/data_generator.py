@@ -51,7 +51,7 @@ def generate(n_generated:int, weights: list[float], profiles: list[list[float]],
     for _ in tqdm(range(n_generated)):
         instance = get_instance(weights, profiles, lmbda)
         data_list.append(instance)
-    data = pd.DataFrame(data_list, columns=['mark_' + str(i+1) for i in range(n)]+['category'])   
+    data = pd.DataFrame(data_list, columns=['mark_' + str(i+1) for i in range(n)]+['class'])   
     return data
 
 def save_csv(df: pd.DataFrame, filename: str) -> None:

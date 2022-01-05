@@ -19,7 +19,7 @@ def mr_sort(
         profiles: list(int) -- list of profiles
         lmbda: int -- lambda value
     Returns:
-        np.array(float) -- category of the instance
+        np.array(float) -- class of the instance
     """
     _class = 0
     for profile in profiles:
@@ -37,14 +37,14 @@ def get_instance(
     weights: list[float], profiles: list[list[float]], lmbda: float, std=2
 ) -> list:
     """
-    Generates an instance (marks + category).
+    Generates an instance (marks + class).
 
     Arguments:
         weights: list(int) -- list of weights
         profiles: list(int) -- list of profiles
         lmbda: int -- lambda value
     Returns:
-        list(int) -- list of marks and category for the instance
+        list(int) -- list of marks and class for the instance
     """
     index = np.random.choice(range(len(profiles)))
     profile = profiles[index]
