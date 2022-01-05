@@ -2,11 +2,13 @@
 
 Please feel free to read the file `MR-Sort-NCS.pdf` to understand the case.
 
-
+# MR-Sort
+## Classes:
+The Classes are given as integers from `1` to `MaxClasses`, where `MaxClasses` is the maximum number of classes in the data. `0` is reserved for instances that can't be in any Class.
 
 # Data Structure :
 Each instance of the problems should be stroed in a csv file with the following format:
-| id  |  note_1  |  note_2  |      classe   |
+| id  |  mark_1  |  mark_2  |      class   |
 |---- |----|----|----|
 |  0  |  12  |  16  |     1     |
 |  1  |  18  |  2  |     0    |
@@ -18,10 +20,10 @@ w_1 w_2 w_3
 
 
 lambda
-w_1 note_1
-w_2 note_2
-w_3 note_3
-w_4 note_4
+w_1 mark_1
+w_2 mark_2
+w_3 mark_3
+w_4 mark_4
 
 b_1 b_2 b_3 b_4
 
@@ -43,5 +45,5 @@ sum(weights, tq w_i>=b_i) >= lambda
 
 
 b_1 = 12
-note_1 = 19 12 15 16 => w_1
-note_1 = 4 7 3 => 0
+mark_1 = 19 12 15 16 => w_1
+mark_1 = 4 7 3 => 0
