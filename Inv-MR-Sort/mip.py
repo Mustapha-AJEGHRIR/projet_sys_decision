@@ -104,10 +104,11 @@ class MIPSolver:
         # Résolution
         self.model.optimize()
 
+        self.trained = True
+        
         if save_solution:
             # Writing the solution in a file
             self.model.write(self.sol_file)
-            self.trained = True
 
     
     def get_solution(self, verbose=None):
@@ -135,5 +136,5 @@ class MIPSolver:
         predicted_classes = []
         profiles, weights, lmbda = self.get_solution(verbose = False)
         for row in X:
-            predicted_classes.append(mr_sort(row[:-1], weights, profiles, lmbda)) # remove classe
+            predicted_classes.append(mr_sort(row, weights, profiles, lmbda)) # remove classe
         return predicted_classes

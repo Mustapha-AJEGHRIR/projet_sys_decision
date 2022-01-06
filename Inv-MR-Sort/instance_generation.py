@@ -50,5 +50,6 @@ def get_instance(
     profile = profiles[index] 
     marks = np.array(profile) + np.random.randn(len(profile)) * std
     marks = np.clip(marks, 0, 20)
+    
     _class = mr_sort(marks, weights, profiles, lmbda)
     return list(marks) + [_class]

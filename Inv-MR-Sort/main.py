@@ -12,7 +12,7 @@ from data_generator import generate_save, generate
 from config import simple_default_params, data_saving_path, solution_saving_path
 from pyfiglet import Figlet
 from utils import get_random_params, print_params
-
+from eval import eval_parameters, plot_n_generated_effect
 
 
 
@@ -32,3 +32,8 @@ if __name__ == "__main__":
     generate_save(simple_default_params, verbose=False)
     print_params(simple_default_params)
     profiles, weights, lmbda = inverse_mr_sort()
+    print("==================================================")
+    
+    eval_parameters(simple_default_params)
+    
+    plot_n_generated_effect(simple_default_params)

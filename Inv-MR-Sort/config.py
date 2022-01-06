@@ -34,3 +34,7 @@ two_profiles_params = {
     "lmbda": 0.8,
     "n_generated": 1000,
 }
+
+
+default_n_generated_list = [50, 100, 200, 400, 600, 800, 1000, 1500, 2000]
+default_eval_rounds = 5
