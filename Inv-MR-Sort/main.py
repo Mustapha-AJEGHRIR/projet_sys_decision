@@ -14,6 +14,8 @@ from pyfiglet import Figlet
 from utils import get_random_params, print_params
 
 
+
+
 def inverse_mr_sort(data_path=data_saving_path, save_path=solution_saving_path):
     solver = MIPSolver(data_path, save_path, verbose = False)
     solver.solve()

@@ -11,6 +11,7 @@ import os
 from gurobipy import Model, GRB, quicksum
 from config import solution_saving_path, data_saving_path
 from utils import Capturing # to make Gurobi quiet
+from instance_generation import mr_sort
 
 class MIPSolver:
     def __init__(
@@ -22,7 +23,10 @@ class MIPSolver:
         verbose=False,
     ):
         self.sol_file = sol_file
-        self.data = pd.read_csv(data_file, index_col=0)
+        if type(data_file) == str:
+            self.data = pd.read_csv(data_file, index_col=0)
+        else : # if data_file is a dataframe
+            self.data = data_file 
         self.model = None
         self.trained = False
         self.epsilon = epsilon
@@ -124,4 +128,12 @@ class MIPSolver:
             print("\t lmbda: ", lmbda)
             
         return profiles, weights, lmbda
+    
+    def predict(self, X: np.ndarray) -> list:
+        assert self.trained, "The model has not been trained yet"
         
+        predicted_classes = []
+        profiles, weights, lmbda = self.get_solution(verbose = False)
+        for row in X:
+            predicted_classes.append(mr_sort(row[:-1], weights, profiles, lmbda)) # remove classe
+        return predicted_classes
