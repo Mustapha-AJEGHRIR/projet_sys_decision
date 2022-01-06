@@ -20,7 +20,7 @@ simple_default_params = {
     "profiles": [[10, 12, 10]],  # b^h_j , h=1..p , j=1..n
     "weights": [0.3, 0.3, 0.4],
     "lmbda": 0.7,
-    "n_generated": 10,
+    "n_generated": 100,
 }
 
 two_profiles_params = {

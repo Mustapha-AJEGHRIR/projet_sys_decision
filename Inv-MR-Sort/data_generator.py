@@ -61,7 +61,7 @@ def parse_from_dict(params: dict) -> tuple:
     return n, p, profiles, weights, lmbda, n_generated
     
     
-def generate(params: dict) -> pd.DataFrame:
+def generate(params: dict, verbose=False) -> pd.DataFrame:
     """
     Generates the data for the Inverse MR-Sort problem.
 
@@ -70,24 +70,28 @@ def generate(params: dict) -> pd.DataFrame:
     Returns:
         pd.DataFrame -- dataframe with the generated data
     """
-    print("Verifying parameters...")
+    if verbose:
+        print("Verifying parameters...")
     n, p, profiles, weights, lmbda, n_generated = parse_from_dict(params)
-    print("Generating data...")
+    if verbose:
+        print("Generating data...")
     p = len(profiles)
     n = len(weights)
     data_list = []
-    for _ in tqdm(range(n_generated)):
+    # for _ in tqdm(range(n_generated)):
+    for _ in range(n_generated):
         instance = get_instance(weights, profiles, lmbda)
         data_list.append(instance)
     data = pd.DataFrame(data_list, columns=['mark_' + str(i+1) for i in range(n)]+['class'])   
     return data
 
-def generate_save(params: dict):
+def generate_save(params: dict, verbose=False):
     """
     Generates the data for the Inverse MR-Sort problem and saves it to a csv file.
     """
-    data = generate(default_params)
-    print("Saving data to {}".format(data_saving_path))
+    data = generate(params, verbose)
+    if verbose:
+        print("Saving data to {}".format(data_saving_path))
     save_csv(data, data_saving_path)
 
 if __name__ == "__main__":

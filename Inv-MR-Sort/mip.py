@@ -1,5 +1,6 @@
 """
 Mixed integer linear program destined to select a particular feasible set of parameters
+This solver works only for 2 classes (p = 1)
 see parag 3 in: 
 https://www.researchgate.net/publication/221367488_Learning_the_Parameters_of_a_Multiple_Criteria_Sorting_Method
 """
@@ -9,7 +10,7 @@ import pandas as pd
 import os
 from gurobipy import Model, GRB, quicksum
 from config import solution_saving_path, data_saving_path
-
+from utils import Capturing # to make Gurobi quiet
 
 class MIPSolver:
     def __init__(
@@ -18,16 +19,22 @@ class MIPSolver:
         sol_file=solution_saving_path,
         epsilon=0.0000000001,
         M=100,
+        verbose=False,
     ):
         self.sol_file = sol_file
         self.data = pd.read_csv(data_file, index_col=0)
         self.model = None
+        self.trained = False
         self.epsilon = epsilon
         self.M = M
+        self.p = 1
+        self.n = None
+        self.verbose = verbose
         self.build_model()
 
     def build_model(self):
-        m = Model("Mixed integer linear program")
+        with Capturing() as output:
+            m = Model("Mixed integer linear program")
 
         A_1 = pd.DataFrame(
             self.data["class"] == 0
@@ -38,7 +45,7 @@ class MIPSolver:
         J_1 = self.data.index[self.data["class"] == 0]
         J_2 = self.data.index[self.data["class"] == 1]
         J = range(len(self.data))
-        n = len(self.data.columns) - 1
+        self.n = n = len(self.data.columns) - 1
         N = I = range(n)
         EPSILON = self.epsilon
         M = self.M
@@ -64,7 +71,7 @@ class MIPSolver:
             vtype=GRB.CONTINUOUS, name="lmbda", lb=0.5, ub=1
         )  # TODO : check if the bounds are correct
         alpha = m.addVar(vtype=GRB.CONTINUOUS, name="alpha")
-
+        self.b = b
         # maj
         m.update()
         
@@ -86,18 +93,35 @@ class MIPSolver:
 
         m.setObjective(alpha, GRB.MAXIMIZE)
 
-        m.params.outputflag = 0  # 0: no output, 1: display output
+        m.params.outputflag = self.verbose  # 0: no output, 1: display output
         self.model = m
 
-    def solve(self):
+    def solve(self, save_solution=True):
         # Résolution
         self.model.optimize()
 
-        # Priting the optimal solutions obtained
-        print("Optimal solution:")
-        for v in self.model.getVars():
-            print(v.varName, v.x)
+        if save_solution:
+            # Writing the solution in a file
+            self.model.write(self.sol_file)
+            self.trained = True
 
-        # Writing the solution in a file
-        self.model.write(self.sol_file)
-        return self.model.objVal
+    
+    def get_solution(self, verbose=None):
+        assert self.trained, "The model has not been trained yet"
+        
+        profiles = [[]]
+        weights = []
+        lmbda = self.model.getVarByName("lmbda").x
+        for i in range(self.n):
+            weights.append(self.model.getVarByName("w[" + str(i) + "]").x)
+            profiles[0].append(self.model.getVarByName("b[" + str(i) + "]").x)
+        
+        if verbose or (verbose == None and self.verbose):
+            print("Solution :")
+            print("**********")
+            print("\t weights: ", weights)
+            print("\t profiles: ", profiles)
+            print("\t lmbda: ", lmbda)
+            
+        return profiles, weights, lmbda
+        
