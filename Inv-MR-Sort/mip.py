@@ -6,20 +6,19 @@ https://www.researchgate.net/publication/221367488_Learning_the_Parameters_of_a_
 
 import numpy as np
 import pandas as pd
-from gurobipy import Model, GRB, quicksum
 import os
+from gurobipy import Model, GRB, quicksum
+from config import solution_saving_path, data_saving_path
 
 
 class MIPSolver:
     def __init__(
         self,
-        model_file="model.lp",
-        data_file=os.path.join(os.path.dirname(__file__), "data.csv"),
-        sol_file="solution.sol",
+        data_file=data_saving_path,
+        sol_file=solution_saving_path,
         epsilon=0.0000000001,
         M=100,
     ):
-        self.model_file = model_file
         self.sol_file = sol_file
         self.data = pd.read_csv(data_file, index_col=0)
         self.model = None

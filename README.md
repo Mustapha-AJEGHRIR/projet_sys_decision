@@ -2,11 +2,13 @@
 
 Please feel free to read the file `MR-Sort-NCS.pdf` to understand the case.
 
-# MR-Sort
+# Inv-MR-Sort
 ## Classes:
 The Classes are given as integers from `1` to `MaxClasses`, where `MaxClasses` is the maximum number of classes in the data. `0` is reserved for instances that can't be in any Class.
 
-# Data Structure :
+## Data Generation:
+
+## Data Structure :
 Each instance of the problems should be stroed in a csv file with the following format:
 | id  |  mark_1  |  mark_2  |      class   |
 |---- |----|----|----|
