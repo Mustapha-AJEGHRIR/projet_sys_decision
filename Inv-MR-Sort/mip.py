@@ -39,6 +39,8 @@ class MIPSolver:
     def build_model(self):
         with Capturing() as output:
             m = Model("Mixed integer linear program")
+            m.setParam("SolutionLimit", 2) #TODO revoir le sens de la Solutionlimit
+            m.setParam("OptimalityTol", 1e-2)
 
         A_1 = pd.DataFrame(
             self.data["class"] == 0
@@ -96,7 +98,6 @@ class MIPSolver:
         m.addConstr(quicksum(w[i] for i in N) == 1)
 
         m.setObjective(alpha, GRB.MAXIMIZE)
-
         m.params.outputflag = self.verbose  # 0: no output, 1: display output
         self.model = m
 

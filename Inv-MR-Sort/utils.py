@@ -62,7 +62,7 @@ def print_params(params: dict) -> None:
     print("**********")
     print("\t n: {}".format(params['n']))
     print("\t p: {}".format(params['p']))
-    print("\t profiles: {}".format(params['profiles']))
     print("\t weights: {}".format(params['weights']))
+    print("\t profiles: {}".format(params['profiles']))
     print("\t lmbda: {}".format(params['lmbda']))
     print("\t n_generated: {}".format(params['n_generated']))
