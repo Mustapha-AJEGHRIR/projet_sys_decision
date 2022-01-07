@@ -42,48 +42,66 @@ class SATSolver:
 
     def build_model(self):
 
-        A_1 = pd.DataFrame(self.data["class"] == 0)  # The good class (named as in the paper)
-        A_2 = pd.DataFrame(self.data["class"] == 1)  # The bad class (named as in the paper)
-        J_1 = self.data.index[self.data["class"] == 0]
-        J_2 = self.data.index[self.data["class"] == 1]
-        J = range(len(self.data))
-        self.n = n = len(self.data.columns) - 1
-        N = I = range(n)
-        EPSILON = self.epsilon
-        M = self.M
-        g = lambda i, j: self.data.iloc[j]["mark_" + str(i + 1)]  # get mark of instance j in criteria i
+        n = len(self.data.columns) - 1
+        criteria = range(n)
 
-        # Exemple # TODO: had exemple khess lalla asmae t9addu
-        # Ensemble V
-        Vertices = ["A", "B", "C", "D"]
+        # make all possible combinations of criteria of all lengths
+        criteria_combinations = []
+        for i in range(0, n + 1):
+            criteria_combinations += list(combinations(range(n), i))
 
-        # Ensemble E
-        Edges = [("A", "B"), ("A", "C"), ("B", "C"), ("B", "D")]
+        # X[i] = list of marks of instance in criterion i;
+        X = np.array([self.data.iloc[:, i] for i in criteria])
 
-        # k=3
-        Colors = [1, 2, 3]
+        # x[i,k] positive  means the student k validates the criterion i
+        x = {(i, k): i*len(X[i])+i_k +
+             1 for i in criteria for i_k, k in enumerate(X[i])}
 
-        # Clauses
-        # Définitions des variables
-        variables = [(i, j) for i in Vertices for j in Colors]
+        # y[B] positive if B is a sufficient coalition
+        y = {v: i + 1 + len(x.keys())
+             for i, v in enumerate(criteria_combinations)}
 
-        # Création des dictionnaires
-        v2i = {v: i + 1 for i, v in enumerate(variables)}  # numérotation qui commence à 1
-        self.i2v = {i: v for v, i in v2i.items()}
+        variables = list(x.keys()) + list(y.keys())
+        v2i = {**x, **y}
+        self.i2v = {v: k for k, v in v2i.items()}
+        A = self.data.index[self.data["class"] == 1]  # accepted instances
+        R = self.data.index[self.data["class"] == 0]  # rejected instances
 
-        clauses_atleastonecolor = [[v2i[i, j] for j in Colors] for i in Vertices]
-        clauses_differentcolors = [[-v2i[v1, k], -v2i[v2, k]] for k in Colors for v1, v2 in Edges]
-        clauses_atmostonecolor = [[-v2i[i, j1], -v2i[i, j2]] for i in Vertices for j1, j2 in combinations(Colors, 2)]
-        self.myClauses = clauses_atleastonecolor + clauses_atmostonecolor + clauses_differentcolors
+        # if student validates a criterion i with evaluation k, then another student with criterion k'>k validates this criterion surely
+        clauses_2a = [[[x[i, kp], -x[i, k]] for k in X[i]
+                       for kp in X[i] if k < kp] for i in criteria]
+        clauses_2a = [item for sublist in clauses_2a for item in sublist] # flatten
 
-        self.myDimacs = self._clauses_to_dimacs(self.myClauses, len(variables))
+
+        # clauses_2b = # TODO: case where p > 1
+
+        # if B is sufficient then each B' caontaining B is sufficient
+        clauses_2c = [[y[Bp], -y[B]]
+                      for B in criteria_combinations for Bp in criteria_combinations if set(B).issubset(set(Bp)) and set(B) != set(Bp)]
+
+        # if a student is accepted and validates all criteria i in B, then B is not sufficient
+        clauses_2d = []
+        for B in criteria_combinations:
+            for u in R:
+                clauses_2d.append([-y[B]]+[-x[i, X[i, u]] for i in B])
+
+        # if an accepted student didn't validate any of B criteria, then tha complementary coalition of B is suffiscient
+        clauses_2e = []
+        for B in criteria_combinations:
+            B_comp = tuple([i for i in criteria if i not in B]) # complementary
+            for u in A:
+                clauses_2e.append([y[B_comp]] + [x[i, X[i, u]] for i in B])
+
+        self.myClauses = clauses_2a + clauses_2c + clauses_2d + clauses_2e
+
+        self.myDimacs = self._clauses_to_dimacs(
+            self.myClauses, len(variables))
         self._write_dimacs_file(self.myDimacs, self.dimacs_file)
 
     def solve(self, save_solution=True):
-        # Lancer la résolution
+        # Start the solver
         res = self._exec_gophersat(self.dimacs_file)
 
-        # Résultat
         print("SAT solver result: ")
         print("Satisfiable:", res[0])
         print("Clauses:", res[1])
@@ -102,7 +120,8 @@ class SATSolver:
         return res
 
     def _clauses_to_dimacs(self, clauses, numvar):
-        dimacs = "c This is it\np cnf " + str(numvar) + " " + str(len(clauses)) + "\n"
+        dimacs = "c This is it\np cnf " + \
+            str(numvar) + " " + str(len(clauses)) + "\n"
         for clause in clauses:
             for atom in clause:
                 dimacs += str(atom) + " "
@@ -115,7 +134,8 @@ class SATSolver:
 
     def _exec_gophersat(self, filename, encoding="utf8"):
         cmd = self.gophersat_path
-        result = subprocess.run([cmd, filename], stdout=subprocess.PIPE, check=True, encoding=encoding)
+        result = subprocess.run(
+            [cmd, filename], stdout=subprocess.PIPE, check=True, encoding=encoding)
         string = str(result.stdout)
         lines = string.splitlines()
 
@@ -129,4 +149,3 @@ class SATSolver:
             [int(x) for x in model if int(x) != 0],
             {self.i2v[abs(int(v))]: int(v) > 0 for v in model if int(v) != 0},
         )
-

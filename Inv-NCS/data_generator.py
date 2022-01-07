@@ -113,4 +113,4 @@ if __name__ == "__main__":
 
     # save data
     os.makedirs(os.path.dirname(data_saving_path), exist_ok=True)
-    data.to_csv(data_saving_path, index=False)
+    data.to_csv(data_saving_path, index=True)
