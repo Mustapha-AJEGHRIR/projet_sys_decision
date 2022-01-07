@@ -16,7 +16,8 @@ Each instance of the problems should be stroed in a csv file with the following 
 |  1  |  18  |  2  |     0    |
 |  2  |  18  |  10  |     1    |
 
-
+$test $
+$\sum$
 
 w_1 w_2 w_3 
 
