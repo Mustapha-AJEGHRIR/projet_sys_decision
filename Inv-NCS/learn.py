@@ -43,6 +43,6 @@ if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
     print(Figlet(font="slant").renderText("Inverse NCS"))
 
-    print_params(simple_default_params)
+    # print_params(simple_default_params)
     sol = inverse_ncs()
     print("\n")
