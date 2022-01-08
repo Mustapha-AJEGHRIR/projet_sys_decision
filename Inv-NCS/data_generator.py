@@ -43,8 +43,8 @@ def parse_from_dict(params):
 def ncs(marks, criteria, coalitions, profiles):
     """
     Returns the class of the instance by comparing to profiles
-    see the paragraph "2.4 NCS" in:
-        https://hal.archives-ouvertes.fr/hal-01443088/document
+    see the paragraph "2.2. Non-compensatory sorting models" in:
+        https://arxiv.org/pdf/1710.10098.pdf
     """
     for h, profile in enumerate(profiles):  # TODO: make sure this works for p > 2
         for i_coal, coalition in enumerate(coalitions):
@@ -109,7 +109,7 @@ def generate_data(params: dict, verbose=False, balanced=True) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    data = generate_data(config.good_example_1, balanced=True)
+    data = generate_data(config.good_case_1, balanced=True)
 
     # save data
     os.makedirs(os.path.dirname(config.data_saving_path), exist_ok=True)

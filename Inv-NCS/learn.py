@@ -1,6 +1,5 @@
 """
-This programme is used to solve the Inverse NCS problem.
-Only binary classes (p = 1) are supported.
+This file is used to solve the Inverse NCS problem using data previously generated in `data_saving_path`.
 """
 
 
@@ -19,7 +18,7 @@ def inverse_ncs(
     print_solution=True,
     save_solution=True,
 ):
-    solver = SATSolver(data_file, save_path, dimacs_saving_path, gophersat_path, verbose=False)
+    solver = SATSolver(data_file, save_path, dimacs_saving_path, gophersat_path)
     sol = solver.solve(save_solution=save_solution)
     if print_solution:
         print_sol(sol)
@@ -30,6 +29,7 @@ def print_sol(sol):
     """
     Print the solution in a nice way
     """
+    print("\n********************")
     print("SAT solver result:")
     print("Satisfiable: " + str(sol["satisfiable"]))
     print(f"Resolution time: {sol['resolution_time']:.4f} seconds")

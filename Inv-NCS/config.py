@@ -16,9 +16,9 @@ good_case_1 = {
     "n_generated": 1000,
 }
 good_case_2 = {
-    "criteria": [0, 1, 2, 3],  # N
-    "coalitions": [[0, 1], [2, 3]],  # B
-    "profiles": [[8, 10, 12, 17]],
+    "criteria": [0, 1, 2, 3],
+    "coalitions": [[0, 1], [2, 3]],
+    "profiles": [[7.265, 10.1, 13.43, 17.789]],
     "n_generated": 1000,
 }
 
