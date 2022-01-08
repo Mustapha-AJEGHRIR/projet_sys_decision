@@ -4,7 +4,7 @@ This file generates the data for the Inverse NCS problem.
 
 from collections import defaultdict
 from unicodedata import category
-from config import default_params, data_saving_path
+import config
 import pandas as pd
 from tqdm import tqdm
 import numpy as np
@@ -68,7 +68,7 @@ def generate_one(criteria, coalitions, profiles, std=2):
     Returns:
         list(int) -- list of marks and class for the instance
     """
-    index = np.random.choice(range(len(profiles)))
+    index = np.random.choice(range(len(profiles)))  # TODO: check if correct for case p > 1
     profile = profiles[index]
     marks = np.array(profile) + np.random.randn(len(profile)) * std
     marks = np.clip(marks, 0, 20)
@@ -109,8 +109,8 @@ def generate_data(params: dict, verbose=False, balanced=True) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    data = generate_data(default_params, balanced=True)
+    data = generate_data(config.good_example_1, balanced=True)
 
     # save data
-    os.makedirs(os.path.dirname(data_saving_path), exist_ok=True)
-    data.to_csv(data_saving_path, index=True)
+    os.makedirs(os.path.dirname(config.data_saving_path), exist_ok=True)
+    data.to_csv(config.data_saving_path, index=True)

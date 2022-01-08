@@ -7,7 +7,7 @@ Only binary classes (p = 1) are supported.
 import os
 import pandas as pd
 from sat import SATSolver
-from config import simple_default_params, data_saving_path, solution_saving_path, dimacs_saving_path, gophersat_path
+from config import data_saving_path, solution_saving_path, dimacs_saving_path, gophersat_path
 from pyfiglet import Figlet
 
 
@@ -50,6 +50,5 @@ if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
     print(Figlet(font="slant").renderText("Inverse NCS"))
 
-    sol = inverse_ncs()
+    inverse_ncs(print_solution=True, save_solution=True)
 
-    print_sol(sol)
