@@ -8,6 +8,7 @@ https://www.researchgate.net/publication/221367488_Learning_the_Parameters_of_a_
 import numpy as np
 import pandas as pd
 import os
+import collections
 from gurobipy import Model, GRB, quicksum
 from config import solution_saving_path, data_saving_path
 from utils import Capturing # to make Gurobi quiet
@@ -31,7 +32,7 @@ class MIPSolver:
         self.trained = False
         self.epsilon = epsilon
         self.M = M
-        self.p = 1
+        self.p = None
         self.n = None
         self.verbose = verbose
         self.build_model()
@@ -42,17 +43,25 @@ class MIPSolver:
             m.setParam("SolutionLimit", 2) #TODO revoir le sens de la Solutionlimit
             m.setParam("OptimalityTol", 1e-2)
 
-        A_1 = pd.DataFrame(
-            self.data["class"] == 0
-        )  # The good class (named as in the paper)
-        A_2 = pd.DataFrame(
-            self.data["class"] == 1
-        )  # The bad class (named as in the paper)
-        J_1 = self.data.index[self.data["class"] == 0]
-        J_2 = self.data.index[self.data["class"] == 1]
-        J = range(len(self.data))
         self.n = n = len(self.data.columns) - 1
+        self.p = p = self.data["class"].max()
+        
         N = I = range(n)
+        K = range(1,p+2)
+        K_no_end = K[:-1]
+        
+        # A_1 = pd.DataFrame(
+        #     self.data["class"] == 0
+        # )  # The good class (named as in the paper)
+        # A_2 = pd.DataFrame(
+        #     self.data["class"] == 1
+        # )  # The bad class (named as in the paper)
+        
+        J_h = collections.defaultdict(list, {h : self.data.index[self.data["class"] == h-1] for h in K})
+        J = range(len(self.data))
+        
+        # J_1 = self.data.index[self.data["class"] == 0]
+        # J_2 = self.data.index[self.data["class"] == 1]
         EPSILON = self.epsilon
         M = self.M
         g = lambda i, j: self.data.iloc[j][
@@ -62,16 +71,18 @@ class MIPSolver:
         # Variables
         # https://support.gurobi.com/hc/en-us/community/posts/360077803892-Is-there-a-rule-to-write-addvar-or-addvars-
         c = m.addVars(
-            [(i, j) for i in N for j in J], name="c", vtype=GRB.CONTINUOUS, lb=0, ub=1
+            [(i, j, l) for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end)], name="c", vtype=GRB.CONTINUOUS, lb=0, ub=1
         )
         w = m.addVars([i for i in N], name="w", vtype=GRB.CONTINUOUS, lb=0, ub=1)
         x = m.addVars([j for j in J], name="x", vtype=GRB.CONTINUOUS)
         y = m.addVars([j for j in J], name="y", vtype=GRB.CONTINUOUS)
         b = m.addVars(
-            [i for i in N], name="b", vtype=GRB.CONTINUOUS, lb=0, ub=20
+            [(i, h) for i in N for h in K_no_end], name="b", vtype=GRB.CONTINUOUS, lb=0, ub=20
+            # [i for i in N], name="b", vtype=GRB.CONTINUOUS, lb=0, ub=20
         )  # TODO: in paper b is fixed
         delta = m.addVars(
-            [(i, j) for i in N for j in J], name="delta", vtype=GRB.BINARY
+            [(i, j, l) for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end)], name="delta", vtype=GRB.BINARY
+            # [(i, j) for i in N for j in J], name="delta", vtype=GRB.BINARY
         )
         lmbda = m.addVar(
             vtype=GRB.CONTINUOUS, name="lmbda", lb=0.5, ub=1
@@ -84,17 +95,17 @@ class MIPSolver:
         # Constaints
         # eq (7) in paper
         m.addConstrs(
-            quicksum(c[i, j] for i in N) + x[j] + EPSILON == lmbda for j in J_1
+            quicksum(c[i, j, h] for i in N) + x[j] + EPSILON == lmbda for h in K[:-1] for j in J_h[h] 
         )
-        m.addConstrs(quicksum(c[i, j] for i in N) == lmbda + y[j] for j in J_2)
+        m.addConstrs(quicksum(c[i, j, h-1] for i in N) == lmbda + y[j] for h in K[1:] for j in J_h[h])
         m.addConstrs(alpha <= x[j] for j in J)
         m.addConstrs(alpha <= y[j] for j in J)
         # eq (6)
-        m.addConstrs(c[i, j] <= w[i] for i in N for j in J)
-        m.addConstrs(c[i, j] <= delta[i, j] for i in N for j in J)
-        m.addConstrs(c[i, j] >= delta[i, j] - 1 + w[i] for i in N for j in J)
-        m.addConstrs(M * delta[i, j] + EPSILON >= g(i, j) - b[i] for i in N for j in J)
-        m.addConstrs(M * (delta[i, j] - 1) <= g(i, j) - b[i] for i in N for j in J)
+        m.addConstrs(c[i, j, l] <= w[i] for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end))
+        m.addConstrs(c[i, j, l] <= delta[i, j, l] for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end))
+        m.addConstrs(c[i, j, l] >= delta[i, j, l] - 1 + w[i] for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end))
+        m.addConstrs(M * delta[i, j, l] + EPSILON >= g(i, j) - b[i, l] for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end))
+        m.addConstrs(M * (delta[i, j, l] - 1) <= g(i, j) - b[i, l] for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end))
         m.addConstr(quicksum(w[i] for i in N) == 1)
 
         m.setObjective(alpha, GRB.MAXIMIZE)
@@ -109,18 +120,23 @@ class MIPSolver:
         
         if save_solution:
             # Writing the solution in a file
+            if not os.path.exists(os.path.dirname(self.sol_file)):
+                os.makedirs(os.path.dirname(self.sol_file))
             self.model.write(self.sol_file)
 
     
     def get_solution(self, verbose=None):
         assert self.trained, "The model has not been trained yet"
         
-        profiles = [[]]
+        profiles = [] #[[]]
         weights = []
         lmbda = self.model.getVarByName("lmbda").x
         for i in range(self.n):
             weights.append(self.model.getVarByName("w[" + str(i) + "]").x)
-            profiles[0].append(self.model.getVarByName("b[" + str(i) + "]").x)
+        for h in range(self.p):
+            profiles.append([])
+            for i in range(self.n):
+                profiles[h].append(self.model.getVarByName("b[" + str(i) + ","+ str(h+1) +"]").x)
         
         if verbose or (verbose == None and self.verbose):
             print("Solution :")

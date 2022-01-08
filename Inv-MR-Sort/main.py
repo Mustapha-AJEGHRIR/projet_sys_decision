@@ -27,6 +27,7 @@ if __name__ == "__main__":
     # parse arguments
     parser = argparse.ArgumentParser(description='Use specific data')
     parser.add_argument('-d', '--data_path', type=str, default=None, help='path to the data')
+    parser.add_argument('-l', '--light_mode', action='store_false', help='light mode, the full analysis will be skipped')
     args = parser.parse_args()
     
     # clear console and print header
@@ -43,13 +44,14 @@ if __name__ == "__main__":
         tok = time()
         print("Solving time: {:.2f}s".format(tok-tik))
         
-        print("==================================================")
-        eval_parameters(default_params)
+        # print("==================================================")
+        # eval_parameters(default_params)
         
-        print("==================================================")
-        plot_n_generated_effect_random(n=3, p=1)
-        plot_n_effect_random(n_generated=1000, p=1)
-        
+        # if not args.light_mode:
+        #     print("==================================================")
+        #     plot_n_generated_effect_random(n=3, p=1)
+        #     plot_n_effect_random(n_generated=1000, p=1)
+                    
     else :
         print("Using data from {}".format(args.data_path))
         print("Solving ...")
