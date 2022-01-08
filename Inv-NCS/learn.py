@@ -22,20 +22,21 @@ def inverse_ncs(
     return sol
 
 
-def print_params(params: dict) -> None:
+def print_sol(sol):
     """
-        Prints the parameters.
+    Print the solution in a nice way
+    """
+    print("SAT solver result: ")
+    print("Satisfiable:", sol[0])
+    print("Clauses:", sol[1])
+    print("Learnt sufficient coalitions:")
+    for coalition, is_sufficient in sol[2].items():
+        if len(coalition) > 1 and type(coalition[1]) != int:
+            continue
+        if is_sufficient:
+            print(coalition, end="\t")
 
-    Args:
-        params (dict): [parameters]
-    """
-    print("Parameters :")
-    print("**********")
-    print("criteria :", params["criteria"])
-    print("coalitions :", params["coalitions"])
-    print("profiles :", params["profiles"])
-    print("n_generated :", params["n_generated"])
-    print("**********\n")
+    print()
 
 
 if __name__ == "__main__":
@@ -43,6 +44,6 @@ if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
     print(Figlet(font="slant").renderText("Inverse NCS"))
 
-    # print_params(simple_default_params)
     sol = inverse_ncs()
-    print("\n")
+
+    print_sol(sol)
