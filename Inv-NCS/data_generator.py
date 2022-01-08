@@ -100,7 +100,7 @@ def generate_data(params: dict, verbose=False, balanced=True) -> pd.DataFrame:
     for _ in tqdm(range(n_generated)):
         instance = generate_one(criteria, coalitions, profiles)
         if balanced:
-            while counts[instance[-1]] > n_generated // (len(profiles) + 1):
+            while counts[instance[-1]] + 1 > n_generated // (len(profiles) + 1):
                 instance = generate_one(criteria, coalitions, profiles)
             counts[instance[-1]] += 1
         data_list.append(instance)
