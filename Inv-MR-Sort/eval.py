@@ -35,9 +35,9 @@ def eval_parameters(params : dict, verbose_results = True, verbose_progress = Fa
     predicted_classes = solver.predict(data_test.to_numpy()[:,:-1]) # [:,:-1] to remove the class column
 
     acc = accuracy_score(test_classes, predicted_classes)
-    prec = precision_score(test_classes, predicted_classes)
-    rec = recall_score(test_classes, predicted_classes)
-    f1 = f1_score(test_classes, predicted_classes)
+    prec = precision_score(test_classes, predicted_classes, average='macro')
+    rec = recall_score(test_classes, predicted_classes, average='macro')
+    f1 = f1_score(test_classes, predicted_classes, average='macro')
     if verbose_results:
         print("=> Confusion Matrix :")
         mtrx = confusion_matrix(test_classes, predicted_classes).__str__()

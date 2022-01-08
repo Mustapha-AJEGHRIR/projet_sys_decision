@@ -53,10 +53,19 @@ default_params = {
     "n_generated": 1000,
 }
 ```
+- It is possible to ignore the `Analysis code` (heavy) by adding `-l` to activate the light mode.
+```bash
+python main.py -l
+```
+
+- To use a different dataset architecture (e.g. different number of classes), please change the `default_params` in `config.py` or change the code of `main.py`. Otherwise, you can provide the 3 arguments `-n` number of criterias, `-p` number of profiles and `-g` number of generated instances.
+
+```bash
+python main.py -n 4 -p 2 -g 1000
+```
 
 - To Use the model with a specific dataset, use the following command, and the output will be saved to `Inv-MR-Sort/output/output.csv` and also printed at the end of the program.
 ```bash
-cd Inv-MR-Sort
 python main.py -d data_path
 ```
 ## Output :

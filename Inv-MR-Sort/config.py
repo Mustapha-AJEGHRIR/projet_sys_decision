@@ -32,15 +32,15 @@ simple_default_params = {
 }
 
 two_profiles_params = {
-    "n": 10,  # Number of criteria
+    "n": 4,  # Number of criteria
     "p": 2,  # number of profiles (the classe "no classe" is not counted)
     "profiles": [
-        [10, 12, 10, 12, 8, 13, 11, 13, 14, 14],  # b^h_j , h=1..p , j=1..n
-        [12, 14, 10, 13, 9, 17, 13, 15, 17, 19],
+        [10, 12, 10, 12],  # b^h_j , h=1..p , j=1..n
+        [12, 14, 10, 13],
     ],
-    "weights": [0.08, 0.08, 0.08, 0.08, 0.08, 0.12, 0.10, 0.14, 0.14, 0.10],
-    "lmbda": 0.8,
-    "n_generated": 1000,
+    "weights": [0.2, 0.2, 0.3, 0.3],
+    "lmbda": 0.6,
+    "n_generated": 500,
 }
 
 

@@ -43,12 +43,17 @@ def get_random_params(n_generated = 100,n=5, p=1, min_max = (0, 20)) -> dict:
         params['weights'][0] = 1
     for i in range(n): # Normalize weights to sumup to 1
         params["weights"][i] = params["weights"][i] / weights_sum
-        
-    for i in range(p):
+    
+    profiles_transpose = []
+    for i in range(n):
         # Don't reach the bound of the range
         min_bound = (min_max[0] + min_max[1])/2 - (min_max[1] - min_max[0])/3
         max_bound = (min_max[0] + min_max[1])/2 + (min_max[1] - min_max[0])/3
-        params['profiles'].append([np.random.uniform(min_bound, max_bound) for _ in range(n)])
+        items_profiles = [np.random.uniform(min_bound, max_bound) for _ in range(p)]
+        items_profiles.sort()
+        profiles_transpose.append(items_profiles)
+    for j in range(p):
+        params['profiles'].append([profiles_transpose[i][j] for i in range(n)])
     return params
 
 def print_params(params: dict) -> None:
