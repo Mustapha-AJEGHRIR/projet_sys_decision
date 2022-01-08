@@ -21,9 +21,6 @@ class SATSolver:
         sol_file=solution_saving_path,
         dimacs_file=dimacs_saving_path,
         gophersat_path=gophersat_path,
-        epsilon=0.0000000001,
-        M=100,
-        verbose=False,
     ):
         self.sol_file = sol_file
         self.dimacs_file = dimacs_file
@@ -53,11 +50,16 @@ class SATSolver:
         # X[i] = list of marks of instance in criterion i;
         X = np.array([self.data.iloc[:, i] for i in criteria])
 
+        counter = iter(range(1, X.size + len(criteria_combinations) + 1))
         # x[i,k] positive  means the mark k validates the criterion i
-        x = {(i, k): i * len(X[i]) + i_k + 1 for i in criteria for i_k, k in enumerate(X[i])}
+        x = {}
+        for i in criteria:
+            for k in X[i]:
+                if (i, k) not in x:
+                    x[(i, k)] = next(counter) 
 
         # y[B] positive if B is a sufficient coalition
-        y = {v: i + 1 + len(x.keys()) for i, v in enumerate(criteria_combinations)}
+        y = {v: next(counter) for v in criteria_combinations}
 
         variables = list(x.keys()) + list(y.keys())
         v2i = {**x, **y}
@@ -161,7 +163,12 @@ class SATSolver:
         lines = string.splitlines()
 
         if lines[1] != "s SATISFIABLE":
-            return False, [], {}
+            return {
+                "satisfiable": False,
+                "clauses": [],
+                "variables": {},
+                "resolution_time": delta_t,
+            }
 
         model = lines[2][2:].split(" ")
 
