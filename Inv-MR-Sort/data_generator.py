@@ -40,6 +40,8 @@ def save_csv(df: pd.DataFrame, filename: str) -> None:
     """
     Save the dataframe to a csv file.
     """
+    if not os.path.exists(os.path.dirname(filename)):
+        os.makedirs(os.path.dirname(filename))
     df.to_csv(filename, index=True)
 
 def parse_from_dict(params: dict) -> tuple:
