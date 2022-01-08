@@ -3,12 +3,10 @@ import platform
 import glob
 
 data_saving_path = os.path.join(os.path.dirname(__file__), "output/data.csv")
-solution_saving_path = os.path.join(
-    os.path.dirname(__file__), "output/solution.sol")
-dimacs_saving_path = os.path.join(
-    os.path.dirname(__file__), "output/workingfile.cnf")
-gophersat_dir = os.path.join(os.path.dirname(
-    __file__), "gophersat", platform.system().lower().replace("windows", "win") + "64")
+solution_saving_path = os.path.join(os.path.dirname(__file__), "output/solution.sol")
+dimacs_saving_path = os.path.join(os.path.dirname(__file__), "output/workingfile.cnf")
+os_name = platform.system().lower().replace("windows", "win") + "64"
+gophersat_dir = os.path.join(os.path.dirname(__file__), "gophersat", os_name)
 gophersat_path = glob.glob(gophersat_dir + "/gophersat*")[0]
 
 default_params = {
