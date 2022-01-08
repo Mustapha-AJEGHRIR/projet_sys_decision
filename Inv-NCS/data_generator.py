@@ -36,6 +36,13 @@ def parse_from_dict(params):
         assert set(coalition).issubset(set(criteria)), "Coalition {} is not a subset of the criteria".format(coalition)
         assert len(coalition) > 0, "Coalition {} is empty".format(coalition)
         assert len(coalition) == len(set(coalition)), "Coalition {} has repeated criteria".format(coalition)
+        for h in range(1, len(profiles)):
+            assert all(
+                profiles[h][i] >= profiles[h - 1][i] for i in coalition
+            ), f"Profile {h + 1} has a lower frontier for criteria {coalition} than profile {h}"
+            assert any(
+                profiles[h][i] != profiles[h - 1][i] for i in coalition
+            ), f"Profile {h + 1} has the same frontier for criteria {coalition} than profile {h}"
 
     return criteria, coalitions, profiles, n_generated
 
@@ -100,16 +107,19 @@ def generate_data(params: dict, verbose=False, balanced=True) -> pd.DataFrame:
     for _ in tqdm(range(n_generated)):
         instance = generate_one(criteria, coalitions, profiles)
         if balanced:
-            while counts[instance[-1]] + 1 > n_generated // (len(profiles) + 1):
+            while counts[instance[-1]] >= np.ceil(n_generated / (len(profiles) + 1)):
                 instance = generate_one(criteria, coalitions, profiles)
             counts[instance[-1]] += 1
         data_list.append(instance)
     data = pd.DataFrame(data_list, columns=["criterion_" + str(i) for i in range(n)] + ["class"])
+    print("Classes generated:")
+    for cls, count in sorted(counts.items()):
+        print(f"\tClass {cls}: {count}")
     return data
 
 
 if __name__ == "__main__":
-    data = generate_data(config.good_case_1, balanced=True)
+    data = generate_data(config.good_case_3, balanced=True)
 
     # save data
     os.makedirs(os.path.dirname(config.data_saving_path), exist_ok=True)
