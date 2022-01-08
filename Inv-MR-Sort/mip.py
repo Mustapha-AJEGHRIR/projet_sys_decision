@@ -1,6 +1,5 @@
 """
 Mixed integer linear program destined to select a particular feasible set of parameters
-This solver works only for 2 classes (p = 1)
 see parag 3 in: 
 https://www.researchgate.net/publication/221367488_Learning_the_Parameters_of_a_Multiple_Criteria_Sorting_Method
 """
