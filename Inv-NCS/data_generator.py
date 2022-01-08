@@ -104,7 +104,7 @@ def generate_data(params: dict, verbose=False, balanced=True) -> pd.DataFrame:
                 instance = generate_one(criteria, coalitions, profiles)
             counts[instance[-1]] += 1
         data_list.append(instance)
-    data = pd.DataFrame(data_list, columns=["mark_" + str(i + 1) for i in range(n)] + ["class"])
+    data = pd.DataFrame(data_list, columns=["criterion_" + str(i) for i in range(n)] + ["class"])
     return data
 
 
