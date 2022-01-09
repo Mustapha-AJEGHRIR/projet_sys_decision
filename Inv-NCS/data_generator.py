@@ -53,7 +53,7 @@ def ncs(marks, criteria, coalitions, profiles):
     see the paragraph "2.2. Non-compensatory sorting models" in:
         https://arxiv.org/pdf/1710.10098.pdf
     """
-    for h, profile in enumerate(profiles):  # TODO: make sure this works for p > 2
+    for h, profile in enumerate(profiles):
         for i_coal, coalition in enumerate(coalitions):
             if any(marks[i] < profile[i] for i in coalition):  # failed coalition
                 if i_coal == len(coalitions) - 1:  # no more coalitions
@@ -99,11 +99,10 @@ def generate_data(params: dict, verbose=False, balanced=True) -> pd.DataFrame:
         print("Verifying parameters...")
     criteria, coalitions, profiles, n_generated = parse_from_dict(params)
     n = len(criteria)
-    if verbose:
-        print("Generating data...")
     data_list = []
     if balanced:
         counts = defaultdict(int)
+    print("Generating data...")
     for _ in tqdm(range(n_generated)):
         instance = generate_one(criteria, coalitions, profiles)
         if balanced:
@@ -112,14 +111,16 @@ def generate_data(params: dict, verbose=False, balanced=True) -> pd.DataFrame:
             counts[instance[-1]] += 1
         data_list.append(instance)
     data = pd.DataFrame(data_list, columns=["criterion_" + str(i) for i in range(n)] + ["class"])
-    print("Classes generated:")
-    for cls, count in sorted(counts.items()):
-        print(f"\tClass {cls}: {count}")
+    if verbose:
+        print("Classes generated:")
+        for cls, count in sorted(counts.items()):
+            print(f"\tClass {cls}: {count}")
+        print()
     return data
 
 
 if __name__ == "__main__":
-    data = generate_data(config.good_case_3, balanced=True)
+    data = generate_data(config.good_case_3, balanced=True, verbose=True)
 
     # save data
     os.makedirs(os.path.dirname(config.data_saving_path), exist_ok=True)

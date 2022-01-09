@@ -12,7 +12,7 @@ if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
     print(Figlet(font="slant").renderText("Inverse NCS"))
 
-    data = generate_data(config.good_case_1, balanced=True)
+    data = generate_data(config.good_case_3, balanced=True)
 
     # save data
     os.makedirs(os.path.dirname(config.data_saving_path), exist_ok=True)

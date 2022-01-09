@@ -21,6 +21,12 @@ good_case_2 = {
     "profiles": [[7.265, 10.1, 13.43, 17.789]],
     "n_generated": 1000,
 }
+good_case_3 = {
+    "criteria": [0, 1, 2, 3],
+    "coalitions": [[0, 1], [2, 3]],
+    "profiles": [[10, 10, 10, 10], [15, 10, 12, 10]],
+    "n_generated": 1000,
+}
 
 bad_case_1 = {
     "criteria": [0, 1, 2, 3],
