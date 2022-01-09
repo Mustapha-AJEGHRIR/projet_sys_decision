@@ -9,26 +9,35 @@ os_name = platform.system().lower().replace("windows", "win") + "64"
 gophersat_dir = os.path.join(os.path.dirname(__file__), "gophersat", os_name)
 gophersat_path = glob.glob(gophersat_dir + "/gophersat*")[0]
 
-default_params = {
+good_case_1 = {
     "criteria": [0, 1, 2, 3],  # N
-    "coalitions": [[0, 1], [0, 2]],  # B
-    "profiles": [[10, 12, 10, 12]],
-    "n_generated": 100,
+    "coalitions": [[0], [1], [2], [3]],  # B
+    "profiles": [[10, 10, 10, 10]],
+    "n_generated": 1000,
+}
+good_case_2 = {
+    "criteria": [0, 1, 2, 3],
+    "coalitions": [[0, 1], [2, 3]],
+    "profiles": [[7.265, 10.1, 13.43, 17.789]],
+    "n_generated": 1000,
+}
+good_case_3 = {
+    "criteria": [0, 1, 2, 3],
+    "coalitions": [[0, 1], [2, 3]],
+    "profiles": [[10, 10, 10, 10], [15, 10, 12, 10]],
+    "n_generated": 1000,
 }
 
-simple_default_params = {
-    "criteria": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],  # N
-    "coalitions": [[0, 1, 2, 4], [3, 4, 5, 0], [6, 7, 8], [9]],  # B
-    "profiles": [[10, 12, 10]],  # b^h_j , h=1..p , j=1..n
-    "n_generated": 100,
+bad_case_1 = {
+    "criteria": [0, 1, 2, 3],
+    "coalitions": [[0], [1], [2]],  # sometimes gives [0,3] sufficient and profile b3 in [13.30, 13.32]
+    "profiles": [[10, 10, 10, 10]],
+    "n_generated": 1000,
 }
 
-two_profiles_params = {
-    "criteria": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],  # N
-    "coalitions": [[0, 1, 2, 4], [3, 4, 5, 0], [6, 7, 8], [9]],  # B
-    "profiles": [
-        [10, 12, 10, 12, 8, 13, 11, 13, 14, 14],  # b^h_j , h=1..p , j=1..n
-        [12, 14, 10, 13, 9, 17, 13, 15, 17, 19],
-    ],
+bad_case_2 = {
+    "criteria": [0, 1, 2, 3],
+    "coalitions": [[0, 1]],  # sometimes gives (0, 1, 2, 3) sufficient with very off b2 and b3 (around 4)
+    "profiles": [[10, 10, 10, 10]],
     "n_generated": 1000,
 }
