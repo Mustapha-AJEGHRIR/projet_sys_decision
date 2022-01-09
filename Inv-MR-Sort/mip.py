@@ -48,26 +48,18 @@ class MIPSolver:
         N = I = range(n)
         K = range(1,p+2)
         K_no_end = K[:-1]
-        
-        # A_1 = pd.DataFrame(
-        #     self.data["class"] == 0
-        # )  # The good class (named as in the paper)
-        # A_2 = pd.DataFrame(
-        #     self.data["class"] == 1
-        # )  # The bad class (named as in the paper)
+
         
         J_h = collections.defaultdict(list, {h : self.data.index[self.data["class"] == h-1] for h in K})
         J = range(len(self.data))
         
-        # J_1 = self.data.index[self.data["class"] == 0]
-        # J_2 = self.data.index[self.data["class"] == 1]
         EPSILON = self.epsilon
         M = self.M
         g = lambda i, j: self.data.iloc[j][
             "mark_" + str(i + 1)
         ]  # get mark of instance j in criteria i
 
-        # Variables
+        # --------------------------------- Variables -------------------------------- #
         # https://support.gurobi.com/hc/en-us/community/posts/360077803892-Is-there-a-rule-to-write-addvar-or-addvars-
         c = m.addVars(
             [(i, j, l) for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end)], name="c", vtype=GRB.CONTINUOUS, lb=0, ub=1
@@ -77,21 +69,18 @@ class MIPSolver:
         y = m.addVars([j for j in J], name="y", vtype=GRB.CONTINUOUS)
         b = m.addVars(
             [(i, h) for i in N for h in K_no_end], name="b", vtype=GRB.CONTINUOUS, lb=0, ub=20
-            # [i for i in N], name="b", vtype=GRB.CONTINUOUS, lb=0, ub=20
-        )  # TODO: in paper b is fixed
+        ) 
         delta = m.addVars(
             [(i, j, l) for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end)], name="delta", vtype=GRB.BINARY
-            # [(i, j) for i in N for j in J], name="delta", vtype=GRB.BINARY
         )
         lmbda = m.addVar(
             vtype=GRB.CONTINUOUS, name="lmbda", lb=0.5, ub=1
-        )  # TODO : check if the bounds are correct
+        )
         alpha = m.addVar(vtype=GRB.CONTINUOUS, name="alpha")
         self.b = b
-        # maj
-        m.update()
+        m.update() # maj
         
-        # Constaints
+        # -------------------------------- Constaints -------------------------------- #
         # eq (7) in paper
         m.addConstrs(
             quicksum(c[i, j, h] for i in N) + x[j] + EPSILON == lmbda for h in K[:-1] for j in J_h[h] 
