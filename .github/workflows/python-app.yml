@@ -36,5 +36,4 @@ jobs:
 #         pytest
     - name: Shallow test
       run: |
-        python Inv-MR-Sort/data_generator.py
-        python Inv-MR-Sort/main.py -d Inv-MR-Sort/output/data.csv
+        python Inv-MR-Sort/main.py -g 100 -n 2 -p 2
