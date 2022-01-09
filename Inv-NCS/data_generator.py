@@ -4,7 +4,7 @@ This file generates the data for the Inverse NCS problem.
 
 from collections import defaultdict
 from unicodedata import category
-from config import default_params, data_saving_path
+import config
 import pandas as pd
 from tqdm import tqdm
 import numpy as np
@@ -36,6 +36,13 @@ def parse_from_dict(params):
         assert set(coalition).issubset(set(criteria)), "Coalition {} is not a subset of the criteria".format(coalition)
         assert len(coalition) > 0, "Coalition {} is empty".format(coalition)
         assert len(coalition) == len(set(coalition)), "Coalition {} has repeated criteria".format(coalition)
+        for h in range(1, len(profiles)):
+            assert all(
+                profiles[h][i] >= profiles[h - 1][i] for i in coalition
+            ), f"Profile {h + 1} has a lower frontier for criteria {coalition} than profile {h}"
+            assert any(
+                profiles[h][i] != profiles[h - 1][i] for i in coalition
+            ), f"Profile {h + 1} has the same frontier for criteria {coalition} than profile {h}"
 
     return criteria, coalitions, profiles, n_generated
 
@@ -43,10 +50,10 @@ def parse_from_dict(params):
 def ncs(marks, criteria, coalitions, profiles):
     """
     Returns the class of the instance by comparing to profiles
-    see the paragraph "2.4 NCS" in:
-        https://hal.archives-ouvertes.fr/hal-01443088/document
+    see the paragraph "2.2. Non-compensatory sorting models" in:
+        https://arxiv.org/pdf/1710.10098.pdf
     """
-    for h, profile in enumerate(profiles):  # TODO: make sure this works for p > 2
+    for h, profile in enumerate(profiles):
         for i_coal, coalition in enumerate(coalitions):
             if any(marks[i] < profile[i] for i in coalition):  # failed coalition
                 if i_coal == len(coalitions) - 1:  # no more coalitions
@@ -68,7 +75,7 @@ def generate_one(criteria, coalitions, profiles, std=2):
     Returns:
         list(int) -- list of marks and class for the instance
     """
-    index = np.random.choice(range(len(profiles)))
+    index = np.random.choice(range(len(profiles)))  # TODO: check if correct for case p > 1
     profile = profiles[index]
     marks = np.array(profile) + np.random.randn(len(profile)) * std
     marks = np.clip(marks, 0, 20)
@@ -92,25 +99,29 @@ def generate_data(params: dict, verbose=False, balanced=True) -> pd.DataFrame:
         print("Verifying parameters...")
     criteria, coalitions, profiles, n_generated = parse_from_dict(params)
     n = len(criteria)
-    if verbose:
-        print("Generating data...")
     data_list = []
     if balanced:
         counts = defaultdict(int)
+    print("Generating data...")
     for _ in tqdm(range(n_generated)):
         instance = generate_one(criteria, coalitions, profiles)
         if balanced:
-            while counts[instance[-1]] > n_generated // (len(profiles) + 1):
+            while counts[instance[-1]] >= np.ceil(n_generated / (len(profiles) + 1)):
                 instance = generate_one(criteria, coalitions, profiles)
             counts[instance[-1]] += 1
         data_list.append(instance)
     data = pd.DataFrame(data_list, columns=["criterion_" + str(i) for i in range(n)] + ["class"])
+    if verbose:
+        print("Classes generated:")
+        for cls, count in sorted(counts.items()):
+            print(f"\tClass {cls}: {count}")
+        print()
     return data
 
 
 if __name__ == "__main__":
-    data = generate_data(default_params, balanced=True)
+    data = generate_data(config.good_case_3, balanced=True, verbose=True)
 
     # save data
-    os.makedirs(os.path.dirname(data_saving_path), exist_ok=True)
-    data.to_csv(data_saving_path, index=True)
+    os.makedirs(os.path.dirname(config.data_saving_path), exist_ok=True)
+    data.to_csv(config.data_saving_path, index=True)

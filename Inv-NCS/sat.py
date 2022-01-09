@@ -21,9 +21,6 @@ class SATSolver:
         sol_file=solution_saving_path,
         dimacs_file=dimacs_saving_path,
         gophersat_path=gophersat_path,
-        epsilon=0.0000000001,
-        M=100,
-        verbose=False,
     ):
         self.sol_file = sol_file
         self.dimacs_file = dimacs_file
@@ -43,6 +40,8 @@ class SATSolver:
         # for variable naming
 
         self.n = len(self.data.columns) - 1
+        self.p = p = max(self.data["class"]) + 1  # = len(profiles) + 1
+
         criteria = range(self.n)
 
         # make all possible combinations of criteria of all lengths
@@ -53,24 +52,38 @@ class SATSolver:
         # X[i] = list of marks of instance in criterion i;
         X = np.array([self.data.iloc[:, i] for i in criteria])
 
-        # x[i,k] positive  means the mark k validates the criterion i
-        x = {(i, k): i * len(X[i]) + i_k + 1 for i in criteria for i_k, k in enumerate(X[i])}
+        counter = iter(range(1, X.size * p + len(criteria_combinations) + 1))
+        # x[i,h,k] positive  means the mark k validates the criterion i wrt the profile b_h
+        x = {}
+        for i in criteria:
+            for h in range(1, p):
+                for k in X[i]:
+                    if (i, h, k) not in x:
+                        x[(i, h, k)] = next(counter)
 
         # y[B] positive if B is a sufficient coalition
-        y = {v: i + 1 + len(x.keys()) for i, v in enumerate(criteria_combinations)}
+        y = {v: next(counter) for v in criteria_combinations}
 
         variables = list(x.keys()) + list(y.keys())
         v2i = {**x, **y}
         self.i2v = {v: k for k, v in v2i.items()}
-        self.y_vars_start = len(x.keys())
-        A = self.data.index[self.data["class"] == 1]  # accepted instances
-        R = self.data.index[self.data["class"] == 0]  # rejected instances
+        self.y_vars_start = len(x)
+
+        C = lambda h: self.data.index[self.data["class"] == h]  # indexes of instances belonging to class h
 
         # if student validates a criterion i with evaluation k, then another student with criterion k'>k validates this criterion surely
-        clauses_2a = [[[x[i, kp], -x[i, k]] for k in X[i] for kp in X[i] if k < kp] for i in criteria]
-        clauses_2a = [item for sublist in clauses_2a for item in sublist]  # flatten
+        clauses_2a = [
+            [x[i, h, kp], -x[i, h, k]] for h in range(1, p) for i in criteria for k in X[i] for kp in X[i] if k < kp
+        ]
 
-        # clauses_2b = # TODO: case where p > 1
+        clauses_2b = [
+            [x[i, h, k], -x[i, hp, k]]
+            for i in criteria
+            for k in X[i]
+            for h in range(1, p)
+            for hp in range(1, p)
+            if h < hp
+        ]
 
         # if B is sufficient then each B' caontaining B is sufficient
         clauses_2c = [
@@ -80,20 +93,22 @@ class SATSolver:
             if set(B).issubset(set(Bp)) and set(B) != set(Bp)
         ]
 
-        # if a student is accepted and validates all criteria i in B, then B is not sufficient
+        # if a student is in class h-1 and validates all criteria (i,h) in B, then B is not sufficient
         clauses_2d = []
-        for B in criteria_combinations:
-            for u in R:
-                clauses_2d.append([-y[B]] + [-x[i, X[i, u]] for i in B])
+        for h in range(1, p):
+            for B in criteria_combinations:
+                for u in C(h - 1):
+                    clauses_2d.append([-y[B]] + [-x[i, h, X[i, u]] for i in B])
 
-        # if an accepted student didn't validate any of B criteria, then tha complementary coalition of B is suffiscient
+        # if a student is in class h and doesnt validate any criteria (i,h) in B, then complementary of B is sufficient
         clauses_2e = []
-        for B in criteria_combinations:
-            B_comp = tuple([i for i in criteria if i not in B])  # complementary
-            for u in A:
-                clauses_2e.append([y[B_comp]] + [x[i, X[i, u]] for i in B])
+        for h in range(1, p):
+            for B in criteria_combinations:
+                B_comp = tuple([i for i in criteria if i not in B])  # complementary
+                for u in C(h):
+                    clauses_2e.append([y[B_comp]] + [x[i, h, X[i, u]] for i in B])
 
-        self.myClauses = clauses_2a + clauses_2c + clauses_2d + clauses_2e
+        self.myClauses = clauses_2a + clauses_2b + clauses_2c + clauses_2d + clauses_2e
 
         self.myDimacs = self._clauses_to_dimacs(self.myClauses, len(variables))
         self._write_dimacs_file(self.myDimacs, self.dimacs_file)
@@ -103,14 +118,19 @@ class SATSolver:
         sol = self._exec_gophersat(self.dimacs_file)
 
         # find profiles intervals
-        profiles_intervals = {k: [0, 20] for k in range(self.n)}
+        profiles_intervals = [[[0, 20] for _ in range(self.n)] for _ in range(self.p - 1)]
         for var, is_satisfied in list(sol["variables"].items())[: self.y_vars_start]:
-            criterion, mark = var
+            criterion, h, mark = var
             if is_satisfied:  # marks validates criterion
-                profiles_intervals[criterion][1] = min(profiles_intervals[criterion][1], mark)
+                profiles_intervals[h - 1][criterion][1] = min(profiles_intervals[h - 1][criterion][1], mark)
             else:
-                profiles_intervals[criterion][0] = max(profiles_intervals[criterion][0], mark)
+                profiles_intervals[h - 1][criterion][0] = max(profiles_intervals[h - 1][criterion][0], mark)
         sol["profiles_intervals"] = profiles_intervals
+
+        sol["sufficient_coalitions"] = []
+        for coalition, is_sufficient in list(sol["variables"].items())[self.y_vars_start :]:
+            if is_sufficient:
+                sol["sufficient_coalitions"].append(coalition)
 
         if save_solution:
             print(f"Saving solution to {self.sol_file}")
@@ -121,15 +141,12 @@ class SATSolver:
                 f.write(f"Resolution time: {sol['resolution_time']:.4f} seconds\n")
 
                 f.write("Learnt sufficient coalitions:" + "\n")
-                for coalition, is_sufficient in sol["variables"].items():
-                    if len(coalition) > 1 and type(coalition[1]) != int:
-                        continue
-                    if is_sufficient:
-                        f.write("\t" + str(coalition) + "\n")
+                for coalition in sol["sufficient_coalitions"]:
+                    f.write("\t" + str(coalition) + "\n")
 
                 f.write("Learnt profiles intervals:\n")
-                for b, interval in sol["profiles_intervals"].items():
-                    f.write(f"\t{b}: [{interval[0]:.2f}, {interval[1]:.2f}]\n")
+                for h, profile in enumerate(sol["profiles_intervals"]):
+                    f.write(f"\tProfile {h+1}: {[list(map(lambda d: round(d,2), l)) for l in profile]}\n")
 
                 # f.write("\nClauses: " + str(sol["clauses"]) + "\n")
                 f.write("Satisfiable clauses: \n")
@@ -161,7 +178,12 @@ class SATSolver:
         lines = string.splitlines()
 
         if lines[1] != "s SATISFIABLE":
-            return False, [], {}
+            return {
+                "satisfiable": False,
+                "clauses": [],
+                "variables": {},
+                "resolution_time": delta_t,
+            }
 
         model = lines[2][2:].split(" ")
 
