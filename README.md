@@ -82,3 +82,36 @@ The effect of variating `n` the number of criterias is shown in the following fi
 Performance|Duration(in s)
 :---:|:---:
 ![image](./assets/score_n_effect.png) | ![imsage](./assets/duration_n_effect.png)
+
+
+# Inv-NCS
+
+## File structure:
+```
+    Inv-NCS
+        │   config.py                       # input parameters to generate data
+        │   data_generator.py               # generates data to output/data.csv
+        │   learn.py                        # model testing
+        │   main.py                         # data generation and model testing
+        │   sat.py                          # SATSolver class
+        │
+        ├───gophersat                       # SAT solver files
+        │   ├───linux64
+        │   │       gophersat-1.1.6
+        │   ├───macos64
+        │   │       gophersat-1.1.6
+        │   └───win64
+        │           gophersat-1.1.6.exe
+        │
+        ├───output
+        │       data.csv                    # Generated data
+        │       solution.sol                # final solution with boolean values of each clause
+        │       workingfile.cnf             # the cnf file containing clauses
+        │
+        └───__pycache__
+                config.cpython-38.pyc
+                sat.cpython-38.pyc
+```
+
+## Classes:
+The Classes are given as integers from `1` to `MaxClasses`, where `MaxClasses` is the maximum number of classes in the data. `0` is reserved for instances that can't be in any Class.
