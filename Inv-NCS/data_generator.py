@@ -63,7 +63,7 @@ def ncs(marks, criteria, coalitions, profiles):
     return h + 1
 
 
-def generate_one(criteria, coalitions, profiles, std=2):
+def generate_one(criteria, coalitions, profiles, std=2, noise_prob=0):
     """
     Generates an instance (marks + class).
 
@@ -81,6 +81,9 @@ def generate_one(criteria, coalitions, profiles, std=2):
     marks = np.clip(marks, 0, 20)
 
     category = ncs(marks, criteria, coalitions, profiles)
+    # add noise
+    if np.random.rand() < noise_prob:
+        category = np.random.choice(range(len(profiles) + 1))
     return list(marks) + [category]
 
 
