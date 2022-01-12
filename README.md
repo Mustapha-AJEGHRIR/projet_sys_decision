@@ -1,6 +1,6 @@
 # This is a project for decision systems
 
-Please feel free to read the file `MR-Sort-NCS.pdf` to understand the case.
+Please feel free to read the file `MR-Sort-NCS.pdf` to understand the case. Inside the python files, you can also find references to some papers used.
 
 # Inv-MR-Sort
 MR-Sort is a decision system that sorts the items into classes based on their evaluation on each criteria using some parameters. The goal of Inverse MR-Sort is to learn those parameters from decisions that have been made. 
