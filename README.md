@@ -32,7 +32,7 @@ Each instance of the problems should be stroed in a csv file with the following 
 </center>
 
 ## Usage:
-- Please refere to `config.py` to change the configuration that we have used.
+- Please refer to `config.py` to change the configuration that we have used.
 - To generate data, go inside the folder, and run data_generator.py. It is possible to change `default_params` in `config.py` to generate different data, or `data_saving_path` to save the data to a different file.
 ```bash
 cd Inv-MR-Sort
@@ -69,7 +69,7 @@ python main.py -n 4 -p 2 -g 1000
 python main.py -d data_path
 ```
 ## Output :
-Lets look at the performance of the Gurobi solver. In figures below, we show the prediction performance (accuracy, precision, recall, F1-score) of the model on the test dataset. And we also show the duration of Inference.
+Let's look at the performance of the Gurobi solver. In figures below, we show the prediction performance (accuracy, precision, recall, F1-score) of the model on the test dataset. And we also show the duration of Inference.
 
 
 The effect of variating `n_generated` the number of instances to be trained on is shown in the following figure.
@@ -85,7 +85,7 @@ Performance|Duration(in s)
 
 
 # Inv-NCS
-
+Non-compensentary sorting relies on the notions of satisfactory values of the criteria and sufficient coalitions of criteria. it combines into defining the fitness of an alternative: an alternative is deemed fit if it has satisfactory values on a sufficient coalition of criteria.
 ## File structure:
 ```
     Inv-NCS
@@ -115,3 +115,32 @@ Performance|Duration(in s)
 
 ## Classes:
 The Classes are given as integers from `1` to `MaxClasses`, where `MaxClasses` is the maximum number of classes in the data. `0` is reserved for instances that can't be in any Class.
+
+## Data Structure :
+Data have the same structure as in Inv-MR-sort:
+<center>
+
+| instance id  |  mark_1  |  mark_2  |mark_3 |   mark_4  |    class  |
+|------------- |  ----    |----      |----   |-----------|-----------|
+|  0           |  12      |  16      |    12 |     15    |     1     |
+|  1           |  12      |  2       |    10 |     8     |     0     |
+|  2           |  12      |  10      |    13 |     14    |     1     |
+
+</center>
+
+After running the code (see next section), you could see the generated data in `Inv-NCS/output/data.csv`
+## Usage:
+
+- Please refer to `config.py` to change the configuration that we have used.
+- It is possible to run the whole code of NCS resolution (data generation + solver) by running the main.py file, the solution will be printed in the terminal and saved in `Inv-NCS/output/solution.sol`
+```bash
+cd Inv-NCS
+python main.py
+```
+### About the parameters:
+
+## Output :
+After running the main.py file, you could see the set of suffiscient coalitions learned, otherwise the solution of the SAT problem could be seen in `Inv-NCS/output/solution.sol`
+with the boolean value of each clause in this format:
+Clauses: [-1, 2, -3, -4, ...  -415, 416] 
+while each of the variables of the problem is enumerated in its positive index if it has to be true to satisfy the SAT problem, or its negative index if it has to be negative to satisfy the SAT problem.
