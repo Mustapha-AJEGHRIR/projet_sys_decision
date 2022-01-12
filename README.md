@@ -103,42 +103,37 @@ Non-compensentary sorting relies on the notions of satisfactory values of the cr
         │   └───win64
         │           gophersat-1.1.6.exe
         │
-        ├───output
-        │       data.csv                    # Generated data
-        │       solution.sol                # final solution with boolean values of each clause
-        │       workingfile.cnf             # the cnf file containing clauses
-        │
-        └───__pycache__
-                config.cpython-38.pyc
-                sat.cpython-38.pyc
+        └───output
+                data.csv                    # Generated data
+                solution.sol                # final solution with boolean values of each clause
+                workingfile.cnf             # the cnf file containing clauses
+
 ```
 
 ## Classes:
-The Classes are given as integers from `1` to `MaxClasses`, where `MaxClasses` is the maximum number of classes in the data. `0` is reserved for instances that can't be in any Class.
+The Classes are given as integers from `0` to `len(profiles)`, where `len(profiles)` is the maximum number of classes in the data. 
 
 ## Data Structure :
 Data have the same structure as in Inv-MR-sort:
 <center>
 
-| instance id  |  mark_1  |  mark_2  |mark_3 |   mark_4  |    class  |
-|------------- |  ----    |----      |----   |-----------|-----------|
-|  0           |  12      |  16      |    12 |     15    |     1     |
-|  1           |  12      |  2       |    10 |     8     |     0     |
-|  2           |  12      |  10      |    13 |     14    |     1     |
+| instance id  |criterion_0|criterion_1|criterion_2|criterion_3|    class  |
+|------------- |-----------|-----------|-----------|-----------|-----------|
+|  0           |  12       |  16       |    12     |     15    |     1     |
+|  1           |  12       |  2        |    10     |     8     |     0     |
+|  2           |  12       |  10       |    13     |     14    |     1     |
 
 </center>
 
 After running the code (see next section), you could see the generated data in `Inv-NCS/output/data.csv`
 ## Usage:
 
+- Add the `gophersat` solver folder in the Inv-NCS folder, just like the structure shown above.
 - Please refer to `config.py` to change the configuration that we have used.
 - It is possible to run the whole code of NCS resolution (data generation + solver) by running the main.py file, the solution will be printed in the terminal and saved in `Inv-NCS/output/solution.sol`
 ```bash
-cd Inv-NCS
-python main.py
+python Inv-NCS/main.py
 ```
-### About the parameters:
-
 ## Output :
 After running the main.py file, you could see the set of suffiscient coalitions learned, otherwise the solution of the SAT problem could be seen in `Inv-NCS/output/solution.sol`
 with the boolean value of each clause in this format:
