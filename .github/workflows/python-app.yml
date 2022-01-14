@@ -36,4 +36,4 @@ jobs:
 #         pytest
     - name: Shallow test
       run: |
-        python Inv-MR-Sort/main.py -g 100 -n 2 -p 2
+        python Inv-MR-Sort/main.py -g 100 -n 2 -p 2 -l
