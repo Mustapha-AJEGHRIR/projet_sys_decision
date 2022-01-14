@@ -26,7 +26,7 @@ Each instance of the problems should be stroed in a csv file with the following 
 
 | id  |  mark_1  |  mark_2  |mark_3 |   mark_4  |      class   |
 |---- |----|----|----|--------------|-----------|
-|  0  |  12  |  16  |    12         |     15    |     1     |
+|  0  |  12  |  16  |    12         |     15    |     2    |
 |  1  |  12  |  2  |     10         |     8     |     0    |
 |  2  |  12  |  10  |    13         |     14    |     1    |
 </center>
@@ -61,12 +61,16 @@ python main.py -l
 - To use a different dataset architecture (e.g. different number of classes), please change the `default_params` in `config.py` or change the code of `main.py`. Otherwise, you can provide the 3 arguments `-n` number of criterias, `-p` number of profiles and `-g` number of generated instances.
 
 ```bash
-python main.py -n 4 -p 2 -g 1000
+python main.py -n 4 -p 2 -g 1000 -l
 ```
 
-- To Use the model with a specific dataset, use the following command, and the output will be saved to `Inv-MR-Sort/output/output.csv` and also printed at the end of the program.
+- To Use the model with a specific dataset, use the following command, and the solution will be saved to `Inv-MR-Sort/output/solution.sol` and also printed at the end of the program.
 ```bash
 python main.py -d data_path
+```
+- To use the model with a noisy Decision Maker, use the following command to generate a noisy dataset and to test its generalization performance. It possible to provide the 4 arguments `-N` to specify decision error probability `-n` number of criterias, `-p` number of profiles and `-g` number of generated instances. The noisy mode enables light mode automatically.
+```bash
+python main.py -N 0.05 -g 1000 -n 4 -p 2
 ```
 ## Output :
 Let's look at the performance of the Gurobi solver. In figures below, we show the prediction performance (accuracy, precision, recall, F1-score) of the model on the test dataset. And we also show the duration of Inference.
