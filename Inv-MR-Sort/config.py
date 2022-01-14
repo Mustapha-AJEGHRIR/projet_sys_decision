@@ -4,6 +4,7 @@ data_saving_path = os.path.join(os.path.dirname(__file__), "output/data.csv")
 solution_saving_path = os.path.join(os.path.dirname(__file__), "output/solution.sol")
 output_folder = os.path.join(os.path.dirname(__file__), "output/")
 
+
 default_params = {
     "n": 6,  # Number of criteria
     "p": 1,  # number of profiles (the classe "no classe" is not counted)

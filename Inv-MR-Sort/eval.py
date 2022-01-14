@@ -1,4 +1,5 @@
 
+from distutils.log import error
 from mip import MIPSolver
 from data_generator import generate
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, precision_score, recall_score
@@ -10,7 +11,7 @@ from tqdm import tqdm
 import os
 
 
-def eval_parameters(params : dict, verbose_results = True, verbose_progress = False) -> tuple:
+def eval_parameters(params : dict, verbose_results = True, verbose_progress = False, error_rate= 0) -> tuple:
     """
     Evaluates the parameters of the Inverse MR-Sort problem. It trains the solver with
     some training data and then evaluates the performance of the solver on the test data.
@@ -23,13 +24,13 @@ def eval_parameters(params : dict, verbose_results = True, verbose_progress = Fa
     Returns:
         tuple -- (accuracy, precision, recall, f1)
     """
-    data_train = generate(params, verbose=False)
-    data_test = generate(params, verbose=False)
+    data_train = generate(params, verbose=False, error_rate=error_rate)
+    data_test = generate(params, verbose=False, error_rate=error_rate)
     test_classes = list(data_test['class'])
     
     tik = time()
     solver = MIPSolver(data_train, None, verbose = verbose_progress)
-    solver.solve(save_solution=False)
+    solver.solve(save_solution=False, error_rate=error_rate)
     tok = time()
     duration = tok - tik
     predicted_classes = solver.predict(data_test.to_numpy()[:,:-1]) # [:,:-1] to remove the class column

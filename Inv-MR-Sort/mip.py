@@ -100,9 +100,10 @@ class MIPSolver:
         m.params.outputflag = self.verbose  # 0: no output, 1: display output
         self.model = m
 
-    def solve(self, save_solution=True):
+    def solve(self, save_solution=True, error_rate = 0):
         # Résolution
         self.model.optimize()
+        print(self.model.status)
 
         self.trained = True
         

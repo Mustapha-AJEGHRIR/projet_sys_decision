@@ -34,7 +34,7 @@ def mr_sort(
 
 
 def get_instance(
-    weights: list[float], profiles: list[list[float]], lmbda: float, std=2
+    weights: list[float], profiles: list[list[float]], lmbda: float, std=2, error_rate = 0
 ) -> list:
     """
     Generates an instance (marks + class).
@@ -52,4 +52,7 @@ def get_instance(
     marks = np.clip(marks, 0, 20)
     
     _class = mr_sort(marks, weights, profiles, lmbda)
+    if error_rate > 0:
+        if np.random.rand() < error_rate:
+            _class = np.random.randint(0, len(profiles)+1)
     return list(marks) + [_class]
