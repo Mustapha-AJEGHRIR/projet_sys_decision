@@ -4,7 +4,6 @@
 # */data.csv
 */model.lp
 */output
-gophersat
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
