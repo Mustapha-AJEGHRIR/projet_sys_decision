@@ -5,6 +5,7 @@ Please feel free to read the file `MR-Sort-NCS.pdf` to understand the case. Insi
 # Inv-MR-Sort
 MR-Sort is a decision system that sorts the items into classes based on their evaluation on each criteria using some parameters. The goal of Inverse MR-Sort is to learn those parameters from decisions that have been made. 
 Please refere to the [paper](https://www.researchgate.net/publication/221367488_Learning_the_Parameters_of_a_Multiple_Criteria_Sorting_Method) for more details.
+
 ## File structure:
 ```
     Inv-MR-Sort
