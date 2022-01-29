@@ -35,8 +35,8 @@ def print_sol(sol):
     print("Satisfiable: " + str(sol["satisfiable"]))
     print(f"Resolution time: {sol['resolution_time']:.4f} seconds")
     print("\nLearnt sufficient coalitions:")
-    for coalition in sol["sufficient_coalitions"]:
-        print("\t" + str(coalition))
+    for coalition, levels in sol["sufficient_coalitions"].items():
+        print(f"\t {coalition} at levels {levels}")
     print("\nLearnt profiles intervals:")
     for h, profile in enumerate(sol["profiles_intervals"]):
         print(f"\tProfile {h+1}: {[list(map(lambda d: round(d,2), l)) for l in profile]}")

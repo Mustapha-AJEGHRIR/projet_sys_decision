@@ -36,9 +36,9 @@ class SATSolver:
         self.build_model()
 
     def build_model(self):
-        # Resolution of UC-NCS (Unique set of sufficient coalitions)
-        # see paper https://arxiv.org/pdf/1710.10098.pdf paragraph 3.2 (A SAT encoding of a given assignment in U-NCS)
-        # for variable naming
+        # Resolution of NCS
+        # see paper https://www.researchgate.net/publication/354003148_Learning_Non-Compensatory_Sorting_models_using_efficient_SATMaxSAT_formulations
+        # paragraph 4.1. A SAT formulation for Inv-NCS based on coalitions
 
         self.n = len(self.data.columns) - 1
         self.p = p = max(self.data["class"]) + 1  # = len(profiles) + 1
@@ -53,7 +53,7 @@ class SATSolver:
         # X[i] = list of marks of instance in criterion i;
         X = np.array([self.data.iloc[:, i] for i in criteria])
 
-        counter = iter(range(1, X.size * p + len(criteria_combinations) + 1))
+        counter = iter(range(1, X.size * p + len(criteria_combinations) * p + 1))
         # x[i,h,k] positive  means the mark k validates the criterion i wrt the profile b_h
         x = {}
         for i in criteria:
@@ -62,8 +62,8 @@ class SATSolver:
                     if (i, h, k) not in x:
                         x[(i, h, k)] = next(counter)
 
-        # y[B] positive if B is a sufficient coalition
-        y = {v: next(counter) for v in criteria_combinations}
+        # y[B, h] positive if the coalition B is sufficient at level h
+        y = {(B, h): next(counter) for B in criteria_combinations for h in range(1, p)}
 
         variables = list(x.keys()) + list(y.keys())
         v2i = {**x, **y}
@@ -73,12 +73,12 @@ class SATSolver:
         C = lambda h: self.data.index[self.data["class"] == h]  # indexes of instances belonging to class h
 
         # if student validates a criterion i with evaluation k, then another student with criterion k'>k validates this criterion surely
-        clauses_2a = [
+        clauses_c1 = [
             [x[i, h, kp], -x[i, h, k]] for h in range(1, p) for i in criteria for k in X[i] for kp in X[i] if k < kp
         ]
 
         # if student validates a criterion i wrt the profile b_h', then he must validate the criterion i wrt the profile b_h (h < h')
-        clauses_2b = [
+        clauses_c2 = [
             [x[i, h, k], -x[i, hp, k]]
             for i in criteria
             for k in X[i]
@@ -88,29 +88,35 @@ class SATSolver:
         ]
 
         # if B is sufficient then each B' containing B is sufficient
-        clauses_2c = [
-            [y[Bp], -y[B]]
+        clauses_c3 = [
+            [y[Bp, h], -y[B, h]]
+            for h in range(1, p)
             for B in criteria_combinations
             for Bp in criteria_combinations
             if set(B).issubset(set(Bp)) and set(B) != set(Bp)
         ]
 
+        # if B is sufficient at level hp then B is sufficient at level h < hp
+        clauses_c4 = [
+            [y[B, h], -y[B, hp]] for B in criteria_combinations for h in range(1, p) for hp in range(1, p) if h < hp
+        ]
+
         # if a student is in class h-1 and validates all criteria (i,h) in B, then B is not sufficient
-        clauses_2d = []
+        clauses_c5 = []
         for h in range(1, p):
             for B in criteria_combinations:
                 for u in C(h - 1):
-                    clauses_2d.append([-y[B]] + [-x[i, h, X[i, u]] for i in B])
+                    clauses_c5.append([-y[B, h]] + [-x[i, h, X[i, u]] for i in B])
 
         # if a student is in class h and doesnt validate any criteria (i,h) in B, then complementary of B is sufficient
-        clauses_2e = []
+        clauses_c6 = []
         for h in range(1, p):
             for B in criteria_combinations:
                 B_comp = tuple([i for i in criteria if i not in B])  # complementary
                 for u in C(h):
-                    clauses_2e.append([y[B_comp]] + [x[i, h, X[i, u]] for i in B])
+                    clauses_c6.append([y[B_comp, h]] + [x[i, h, X[i, u]] for i in B])
 
-        self.myClauses = clauses_2a + clauses_2b + clauses_2c + clauses_2d + clauses_2e
+        self.myClauses = clauses_c1 + clauses_c2 + clauses_c3 + clauses_c4 + clauses_c5 + clauses_c6
 
         self.myDimacs = self._clauses_to_dimacs(self.myClauses, len(variables))
         self._write_dimacs_file(self.myDimacs, self.dimacs_file)
@@ -129,10 +135,14 @@ class SATSolver:
                 profiles_intervals[h - 1][criterion][0] = max(profiles_intervals[h - 1][criterion][0], mark)
         sol["profiles_intervals"] = profiles_intervals
 
-        sol["sufficient_coalitions"] = []
-        for coalition, is_sufficient in list(sol["variables"].items())[self.y_vars_start :]:
+        sol["sufficient_coalitions"] = {} # {B: [h where B is sufficient at level h]}
+        for var, is_sufficient in list(sol["variables"].items())[self.y_vars_start :]:
+            B, h = var
             if is_sufficient:
-                sol["sufficient_coalitions"].append(coalition)
+                if B in sol["sufficient_coalitions"]:
+                    sol["sufficient_coalitions"][B].append(h)
+                else:
+                    sol["sufficient_coalitions"][B] = [h]
 
         if save_solution:
             print(f"Saving solution to {self.sol_file}")
@@ -143,8 +153,8 @@ class SATSolver:
                 f.write(f"Resolution time: {sol['resolution_time']:.4f} seconds\n")
 
                 f.write("Learnt sufficient coalitions:" + "\n")
-                for coalition in sol["sufficient_coalitions"]:
-                    f.write("\t" + str(coalition) + "\n")
+                for coalition, levels in sol["sufficient_coalitions"].items():
+                    f.write(f"\t {coalition} at levels {levels}\n")
 
                 f.write("Learnt profiles intervals:\n")
                 for h, profile in enumerate(sol["profiles_intervals"]):
