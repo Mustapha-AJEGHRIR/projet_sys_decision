@@ -36,6 +36,7 @@ class SATSolver:
         self.build_model()
 
     def build_model(self):
+        # Resolution of UC-NCS (Unique set of sufficient coalitions)
         # see paper https://arxiv.org/pdf/1710.10098.pdf paragraph 3.2 (A SAT encoding of a given assignment in U-NCS)
         # for variable naming
 
@@ -76,6 +77,7 @@ class SATSolver:
             [x[i, h, kp], -x[i, h, k]] for h in range(1, p) for i in criteria for k in X[i] for kp in X[i] if k < kp
         ]
 
+        # if student validates a criterion i wrt the profile b_h', then he must validate the criterion i wrt the profile b_h (h < h')
         clauses_2b = [
             [x[i, h, k], -x[i, hp, k]]
             for i in criteria
@@ -85,7 +87,7 @@ class SATSolver:
             if h < hp
         ]
 
-        # if B is sufficient then each B' caontaining B is sufficient
+        # if B is sufficient then each B' containing B is sufficient
         clauses_2c = [
             [y[Bp], -y[B]]
             for B in criteria_combinations

@@ -4,6 +4,7 @@
 # */data.csv
 */model.lp
 */output
+learning-sets
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
