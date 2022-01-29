@@ -8,7 +8,7 @@ https://www.researchgate.net/publication/221367488_Learning_the_Parameters_of_a_
 import numpy as np
 import pandas as pd
 import os
-from config import solution_saving_path, data_saving_path, dimacs_saving_path, gophersat_path
+from config import solution_saving_path, data_saving_path, dimacs_saving_path, gophersat_path, solver_log_path
 import subprocess
 from itertools import combinations
 import time
@@ -23,7 +23,8 @@ class SATSolver:
         gophersat_path=gophersat_path,
     ):
         self.sol_file = sol_file
-        self.dimacs_file = dimacs_file
+        self.solver_log_file = solver_log_path
+        self.dimacs_file = dimacs_file + ".cnf"
         self.gophersat_path = gophersat_path
         if type(data_file) == str:
             self.data = pd.read_csv(data_file, index_col=0)
@@ -186,7 +187,9 @@ class SATSolver:
         result = subprocess.run([cmd, filename], stdout=subprocess.PIPE, check=True, encoding=encoding)
         delta_t = time.time() - start
         print(f"Solving took {delta_t:.4f} seconds")
-        string = str(result.stdout)
+        string = str(result.stdout)        
+        with open(self.solver_log_file, "w", newline="") as f:
+            f.write(string)
         lines = string.splitlines()
 
         if lines[1] != "s SATISFIABLE":
