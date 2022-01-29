@@ -18,4 +18,5 @@ if __name__ == "__main__":
     os.makedirs(os.path.dirname(config.data_saving_path), exist_ok=True)
     data.to_csv(config.data_saving_path, index=True)
 
-    inverse_ncs(data, print_solution=True, save_solution=True)
+    inverse_ncs(solver_name="MaxSAT", data_file=data, print_solution=True, save_solution=True)
+
