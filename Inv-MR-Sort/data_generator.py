@@ -4,6 +4,7 @@ This file generates the data for the Inverse MR-Sort problem.
 import pandas as pd
 import numpy as np
 import os
+import argparse
 from instance_generation import get_instance
 
 from tqdm import tqdm
@@ -17,7 +18,7 @@ def parameter_verification(weights: list[float], profiles: list[list[float]], lm
         weights: list(int) -- list of weights
         profiles: list(int) -- list of profiles
         lmbda: int -- lambda value
-        n: int -- number of criterias
+        n: int -- number of criteria
         p: int -- number of profiles
         n_generated: int -- number of generated items
     Returns:
@@ -26,10 +27,10 @@ def parameter_verification(weights: list[float], profiles: list[list[float]], lm
     assert n_generated > 0, "The number of generated items must be greater than 0."
     assert n>0, "n must be positive"
     assert p>0, "p must be positive"
-    assert len(weights) == n, "The number of weights must be equal to the number of criterias n"
+    assert len(weights) == n, "The number of weights must be equal to the number of criteria n"
     assert len(profiles) == p, "The number of given profiles must be equal to the number of profiles p"
     for i, profile in enumerate(profiles):
-        assert len(profile) == n, "The number of bounds in profile {} must be equal to the number of criterias n".format(i)
+        assert len(profile) == n, "The number of bounds in profile {} must be equal to the number of criteria n".format(i)
     assert lmbda >= 0 and lmbda <=1, "The lambda value must be between 0 and 1"
     for h in range(1, len(profiles)):
         for i in range(n):
@@ -63,7 +64,7 @@ def parse_from_dict(params: dict) -> tuple:
     return n, p, profiles, weights, lmbda, n_generated
     
     
-def generate(params: dict, verbose=False) -> pd.DataFrame:
+def generate(params: dict, verbose=False, error_rate = 0) -> pd.DataFrame:
     """
     Generates the data for the Inverse MR-Sort problem.
 
@@ -82,21 +83,28 @@ def generate(params: dict, verbose=False) -> pd.DataFrame:
     data_list = []
     # for _ in tqdm(range(n_generated)):
     for _ in range(n_generated):
-        instance = get_instance(weights, profiles, lmbda)
+        instance = get_instance(weights, profiles, lmbda, error_rate=error_rate)
         data_list.append(instance)
     data = pd.DataFrame(data_list, columns=['mark_' + str(i+1) for i in range(n)]+['class'])   
     return data
 
-def generate_save(params: dict, verbose=False):
+def generate_save(params: dict, verbose=False, error_rate = 0):
     """
     Generates the data for the Inverse MR-Sort problem and saves it to a csv file.
     """
-    data = generate(params, verbose)
+    data = generate(params, verbose, error_rate = error_rate)
     if verbose:
         print("Saving data to {}".format(data_saving_path))
     save_csv(data, data_saving_path)
 
 if __name__ == "__main__":
-    # Generating
-    generate_save(default_params)
+    parser = argparse.ArgumentParser(description='Use specific data')
+    parser.add_argument('-N', '--noise', type = float, default=0, help='To introduce noise in data labelisation')
+    args = parser.parse_args()
+    
+    if args.noise > 0 : # introduce noise
+        print("Data will be generated with noise, Error rate (see config.py) is : ", args.noise)
+        generate_save(default_params, verbose= True, error_rate = args.noise)
+    else :
+        generate_save(default_params, verbose= True)
     

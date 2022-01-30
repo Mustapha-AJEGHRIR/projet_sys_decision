@@ -5,6 +5,7 @@ Please feel free to read the file `MR-Sort-NCS.pdf` to understand the case. Insi
 # Inv-MR-Sort
 MR-Sort is a decision system that sorts the items into classes based on their evaluation on each criteria using some parameters. The goal of Inverse MR-Sort is to learn those parameters from decisions that have been made. 
 Please refere to the [paper](https://www.researchgate.net/publication/221367488_Learning_the_Parameters_of_a_Multiple_Criteria_Sorting_Method) for more details.
+
 ## File structure:
 ```
     Inv-MR-Sort
@@ -26,7 +27,7 @@ Each instance of the problems should be stroed in a csv file with the following 
 
 | id  |  mark_1  |  mark_2  |mark_3 |   mark_4  |      class   |
 |---- |----|----|----|--------------|-----------|
-|  0  |  12  |  16  |    12         |     15    |     1     |
+|  0  |  12  |  16  |    12         |     15    |     2    |
 |  1  |  12  |  2  |     10         |     8     |     0    |
 |  2  |  12  |  10  |    13         |     14    |     1    |
 </center>
@@ -45,7 +46,7 @@ python main.py
 ```
 ```python
 default_params = {
-    "n": 6,  # Number of criterias
+    "n": 6,  # Number of criteria
     "p": 1,  # number of profiles (the classe "no classe" is not counted)
     "profiles": [[10, 12, 10, 12, 8, 13]],  # b^h_j , h=1..p , j=1..n
     "weights": [0.15, 0.25, 0.1, 0.15, 0.1, 0.25],  # w_j , j=1..n
@@ -58,15 +59,19 @@ default_params = {
 python main.py -l
 ```
 
-- To use a different dataset architecture (e.g. different number of classes), please change the `default_params` in `config.py` or change the code of `main.py`. Otherwise, you can provide the 3 arguments `-n` number of criterias, `-p` number of profiles and `-g` number of generated instances.
+- To use a different dataset architecture (e.g. different number of classes), please change the `default_params` in `config.py` or change the code of `main.py`. Otherwise, you can provide the 3 arguments `-n` number of criteria, `-p` number of profiles and `-g` number of generated instances.
 
 ```bash
-python main.py -n 4 -p 2 -g 1000
+python main.py -n 4 -p 2 -g 1000 -l
 ```
 
-- To Use the model with a specific dataset, use the following command, and the output will be saved to `Inv-MR-Sort/output/output.csv` and also printed at the end of the program.
+- To Use the model with a specific dataset, use the following command, and the solution will be saved to `Inv-MR-Sort/output/solution.sol` and also printed at the end of the program.
 ```bash
 python main.py -d data_path
+```
+- To use the model with a noisy Decision Maker, use the following command to generate a noisy dataset and to test its generalization performance. It possible to provide the 4 arguments `-N` to specify decision error probability `-n` number of criteria, `-p` number of profiles and `-g` number of generated instances. The noisy mode enables light mode automatically.
+```bash
+python main.py -N 0.05 -g 1000 -n 4 -p 2
 ```
 ## Output :
 Let's look at the performance of the Gurobi solver. In figures below, we show the prediction performance (accuracy, precision, recall, F1-score) of the model on the test dataset. And we also show the duration of Inference.
@@ -78,7 +83,7 @@ Performance|Duration(in s)
 ![image](./assets/score_n_generated_effect.png) | ![imsage](./assets/duration_n_generated_effect.png)
 
 
-The effect of variating `n` the number of criterias is shown in the following figure.
+The effect of variating `n` the number of criteria is shown in the following figure.
 Performance|Duration(in s)
 :---:|:---:
 ![image](./assets/score_n_effect.png) | ![imsage](./assets/duration_n_effect.png)

@@ -4,6 +4,7 @@ data_saving_path = os.path.join(os.path.dirname(__file__), "output/data.csv")
 solution_saving_path = os.path.join(os.path.dirname(__file__), "output/solution.sol")
 output_folder = os.path.join(os.path.dirname(__file__), "output/")
 
+
 default_params = {
     "n": 6,  # Number of criteria
     "p": 1,  # number of profiles (the classe "no classe" is not counted)
@@ -44,6 +45,6 @@ two_profiles_params = {
 }
 
 
-default_n_generated_list = [200, 400, 600, 800, 1000, 1500, 2000, 3000]
-default_eval_rounds = 20
+default_n_generated_list = [50, 100, 200, 400, 600, 800, 1000, 1500, 2000]
+default_eval_rounds = 5
 default_n_list = [2, 3, 4, 5, 6, 7]
