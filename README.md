@@ -45,7 +45,7 @@ python main.py
 ```
 ```python
 default_params = {
-    "n": 6,  # Number of criterias
+    "n": 6,  # Number of criteria
     "p": 1,  # number of profiles (the classe "no classe" is not counted)
     "profiles": [[10, 12, 10, 12, 8, 13]],  # b^h_j , h=1..p , j=1..n
     "weights": [0.15, 0.25, 0.1, 0.15, 0.1, 0.25],  # w_j , j=1..n
@@ -58,7 +58,7 @@ default_params = {
 python main.py -l
 ```
 
-- To use a different dataset architecture (e.g. different number of classes), please change the `default_params` in `config.py` or change the code of `main.py`. Otherwise, you can provide the 3 arguments `-n` number of criterias, `-p` number of profiles and `-g` number of generated instances.
+- To use a different dataset architecture (e.g. different number of classes), please change the `default_params` in `config.py` or change the code of `main.py`. Otherwise, you can provide the 3 arguments `-n` number of criteria, `-p` number of profiles and `-g` number of generated instances.
 
 ```bash
 python main.py -n 4 -p 2 -g 1000 -l
@@ -68,7 +68,7 @@ python main.py -n 4 -p 2 -g 1000 -l
 ```bash
 python main.py -d data_path
 ```
-- To use the model with a noisy Decision Maker, use the following command to generate a noisy dataset and to test its generalization performance. It possible to provide the 4 arguments `-N` to specify decision error probability `-n` number of criterias, `-p` number of profiles and `-g` number of generated instances. The noisy mode enables light mode automatically.
+- To use the model with a noisy Decision Maker, use the following command to generate a noisy dataset and to test its generalization performance. It possible to provide the 4 arguments `-N` to specify decision error probability `-n` number of criteria, `-p` number of profiles and `-g` number of generated instances. The noisy mode enables light mode automatically.
 ```bash
 python main.py -N 0.05 -g 1000 -n 4 -p 2
 ```
@@ -82,7 +82,7 @@ Performance|Duration(in s)
 ![image](./assets/score_n_generated_effect.png) | ![imsage](./assets/duration_n_generated_effect.png)
 
 
-The effect of variating `n` the number of criterias is shown in the following figure.
+The effect of variating `n` the number of criteria is shown in the following figure.
 Performance|Duration(in s)
 :---:|:---:
 ![image](./assets/score_n_effect.png) | ![imsage](./assets/duration_n_effect.png)

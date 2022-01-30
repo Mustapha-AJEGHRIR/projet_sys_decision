@@ -60,7 +60,7 @@ def multi_eval_parameters(n=5, p=1, n_generated=100, n_rounds= 3, verbose_result
     on the test data. all the data is generated in random according the the parameters.
     
     Arguments:
-        n: int -- number of criterias to be generated randomly
+        n: int -- number of criteria to be generated randomly
         p: int -- number of profiles to be generated randomly
         n_generated: int -- number of generated data
         n_rounds: int -- number of rounds of evaluation
@@ -97,7 +97,7 @@ def plot_n_generated_effect_random(n=5, p=1, n_rounds= default_eval_rounds,
     number of generated data on the performance of the solver. 
     
     Arguments:
-        n: int -- number of criterias to be generated randomly
+        n: int -- number of criteria to be generated randomly
         p: int -- number of profiles to be generated randomly
         n_rounds: int -- number of rounds of evaluation
         n_generated_list: list -- list of n_generated values to be tested
@@ -122,7 +122,7 @@ def plot_n_generated_effect_random(n=5, p=1, n_rounds= default_eval_rounds,
     plt.plot(n_generated_list, precisions, label='precision')
     plt.plot(n_generated_list, recalls, label='recall')
     plt.plot(n_generated_list, f1s, label='f1')
-    plt.title("Effect of n_generated on performance number of criterias = {}".format(n))
+    plt.title("Effect of n_generated on performance number of criteria = {}".format(n))
     plt.xlabel("n_generated")
     plt.ylabel("score")
     plt.legend()
@@ -130,7 +130,7 @@ def plot_n_generated_effect_random(n=5, p=1, n_rounds= default_eval_rounds,
     plt.show()
     
     plt.plot(n_generated_list, durations)
-    plt.title("Duration of the for number of criterias = {}".format(n))
+    plt.title("Duration of the for number of criteria = {}".format(n))
     plt.ylabel("duration")
     plt.xlabel("n_generated")
     plt.savefig(os.path.join(output_folder, "duration_n_generated_effect.png"), dpi=300)
@@ -148,7 +148,7 @@ def plot_n_effect_random(n_generated=500, p=1, n_rounds= default_eval_rounds,
         n_egenrated: int -- number of generated data
         p: int -- number of profiles to be generated randomly
         n_rounds: int -- number of rounds of evaluation
-        n_list: list -- list of n criterias to be tested and generated randomly
+        n_list: list -- list of n criteria to be tested and generated randomly
         verbose_results: bool -- if True, prints the results
         verbose_progress: bool -- if True, prints the progress of the training
     Returns:
@@ -171,7 +171,7 @@ def plot_n_effect_random(n_generated=500, p=1, n_rounds= default_eval_rounds,
     plt.plot(n_list, recalls, label='recall')
     plt.plot(n_list, f1s, label='f1')
     plt.title("Effect of n_generated on performance for n_generated = {}".format(n_generated))
-    plt.xlabel("number of criterias")
+    plt.xlabel("number of criteria")
     plt.ylabel("score")
     plt.legend()
     plt.savefig(os.path.join(output_folder, "score_n_effect.png"), dpi=300)
@@ -180,7 +180,7 @@ def plot_n_effect_random(n_generated=500, p=1, n_rounds= default_eval_rounds,
     plt.plot(n_list, durations)
     plt.title("Mean duration of solving for n_generated = {}".format(n_generated))
     plt.ylabel("duration")
-    plt.xlabel("number of criterias")
+    plt.xlabel("number of criteria")
     plt.savefig(os.path.join(output_folder, "duration_n_effect.png"), dpi=300)
     plt.show()
     

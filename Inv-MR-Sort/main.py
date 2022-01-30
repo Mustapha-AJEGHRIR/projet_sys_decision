@@ -29,7 +29,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--data_path', type=str, default=None, help='path to the data')
     parser.add_argument('-l', '--light_mode', action='store_true', help='light mode, the full analysis will be skipped')
     parser.add_argument('-p', '--profiles',type=int, default=1, help='number of profiles')
-    parser.add_argument('-n', '--n_criterias', type=int, default=5, help='number of criterias')
+    parser.add_argument('-n', '--n_criteria', type=int, default=5, help='number of criteria')
     parser.add_argument('-g', '--generate', type=int, default=None, help='number of generated data')
     parser.add_argument('-N', '--noise', type = float, default=0, help='To introduce noise in data labelisation, only available with light mode')
     args = parser.parse_args()
@@ -49,10 +49,10 @@ if __name__ == "__main__":
     if args.generate is not None:
         assert args.generate > 0, "The number of generated data must be positive"
         assert args.profiles > 0, "The number of profiles must be positive"
-        assert args.n_criterias > 0, "The number of items must be positive"
+        assert args.n_criteria > 0, "The number of items must be positive"
         
-        print("Generating {} data Randomly for n = {} and p = {}".format(args.generate, args.n_criterias, args.profiles))
-        params = get_random_params(args.generate, args.n_criterias, args.profiles)
+        print("Generating {} data Randomly for n = {} and p = {}".format(args.generate, args.n_criteria, args.profiles))
+        params = get_random_params(args.generate, args.n_criteria, args.profiles)
     else :
         params = default_params
 

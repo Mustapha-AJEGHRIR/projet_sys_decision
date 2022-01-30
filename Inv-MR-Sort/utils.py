@@ -20,9 +20,9 @@ def get_random_params(n_generated = 100,n=5, p=1, min_max = (0, 20)) -> dict:
         Generates a random set of parameters. See config.py for an example.
 
     Args:
-        n (int, optional): [number of criterias]. Defaults to 5.
+        n (int, optional): [number of criteria]. Defaults to 5.
         p (int, optional): [number of classes, p=1 means 2 classes, p+1 classes]. Defaults to 1.
-        min_max (tuple, optional): [range of values for criterias]. Defaults to (0, 20).
+        min_max (tuple, optional): [range of values for criteria]. Defaults to (0, 20).
 
     Returns:
         params [dict]: [randomly generated parameters]

@@ -18,7 +18,7 @@ def parameter_verification(weights: list[float], profiles: list[list[float]], lm
         weights: list(int) -- list of weights
         profiles: list(int) -- list of profiles
         lmbda: int -- lambda value
-        n: int -- number of criterias
+        n: int -- number of criteria
         p: int -- number of profiles
         n_generated: int -- number of generated items
     Returns:
@@ -27,10 +27,10 @@ def parameter_verification(weights: list[float], profiles: list[list[float]], lm
     assert n_generated > 0, "The number of generated items must be greater than 0."
     assert n>0, "n must be positive"
     assert p>0, "p must be positive"
-    assert len(weights) == n, "The number of weights must be equal to the number of criterias n"
+    assert len(weights) == n, "The number of weights must be equal to the number of criteria n"
     assert len(profiles) == p, "The number of given profiles must be equal to the number of profiles p"
     for i, profile in enumerate(profiles):
-        assert len(profile) == n, "The number of bounds in profile {} must be equal to the number of criterias n".format(i)
+        assert len(profile) == n, "The number of bounds in profile {} must be equal to the number of criteria n".format(i)
     assert lmbda >= 0 and lmbda <=1, "The lambda value must be between 0 and 1"
     for h in range(1, len(profiles)):
         for i in range(n):
