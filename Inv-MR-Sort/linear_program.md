@@ -28,7 +28,7 @@ subject\ to& \sum_{i \in N} c_{ij}^h + x_j + \epsilon = \lambda &\quad \forall a
 
 & w_i \in [0, 1] &\quad \forall i \in N \\
 
-& c_{ij}^l, \delta_{ij}^l \in \{ 0, 1\} &\quad \forall i \in N, \forall a_j \in C_h, \forall h \in K, \forall l \in \{h, h-1\} \cap K_{no\_end} \\
+& c_{ij}^l\in [0, 1], \delta_{ij}^l \in \{ 0, 1\} &\quad \forall i \in N, \forall a_j \in C_h, \forall h \in K, \forall l \in \{h, h-1\} \cap K_{no\_end} \\
 
 & x_j, y_j \in \mathbb R &\quad \forall a_j \in C^* \\
 
@@ -66,7 +66,7 @@ subject\ to& \sum_{i \in N} c_{ij}^h+ \epsilon \le \lambda +M(1-\gamma_j) &\quad
 
 & w_i \in [0, 1] &\quad \forall i \in N \\
 
-& c_{ij}^l, \delta_{ij}^l \in \{ 0, 1\} &\quad \forall i \in N, \forall a_j \in C_h, \forall h \in K, \forall l \in \{h, h-1\} \cap K_{no\_end} \\
+& c_{ij}^l\in [0, 1], \delta_{ij}^l \in \{ 0, 1\} &\quad \forall i \in N, \forall a_j \in C_h, \forall h \in K, \forall l \in \{h, h-1\} \cap K_{no\_end} \\
 
 & x_j, y_j \in \mathbb R &\quad \forall a_j \in C^* \\
 

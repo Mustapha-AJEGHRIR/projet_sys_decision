@@ -22,7 +22,6 @@ def inverse_mr_sort(error_rate = 0, data_path=data_saving_path, save_path=soluti
     return solver.get_solution(verbose = True)
     
 
-
 if __name__ == "__main__":
     # parse arguments
     parser = argparse.ArgumentParser(description='Use specific data')

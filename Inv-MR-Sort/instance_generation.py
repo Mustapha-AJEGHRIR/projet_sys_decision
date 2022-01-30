@@ -3,6 +3,7 @@ This file contains the functions that generate the instances.
 """
 
 import numpy as np
+from utils import value_quantization
 
 
 def mr_sort(
@@ -49,6 +50,7 @@ def get_instance(
     index = np.random.choice(range(len(profiles)))
     profile = profiles[index] 
     marks = np.array(profile) + np.random.randn(len(profile)) * std
+    marks =np.array(list( map(value_quantization, marks) ))
     marks = np.clip(marks, 0, 20)
     
     _class = mr_sort(marks, weights, profiles, lmbda)

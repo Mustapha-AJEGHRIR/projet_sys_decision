@@ -1,6 +1,7 @@
 import numpy as np
 from io import StringIO 
 import sys
+from config import quantization_factor
 
 class Capturing(list):
     """
@@ -14,6 +15,10 @@ class Capturing(list):
         self.extend(self._stringio.getvalue().splitlines())
         del self._stringio  
         sys.stdout = self._stdout
+
+def value_quantization(x :float) -> float : 
+    return round(x * quantization_factor) / quantization_factor
+
 
 def get_random_params(n_generated = 100,n=5, p=1, min_max = (0, 20)) -> dict:
     """
@@ -33,7 +38,7 @@ def get_random_params(n_generated = 100,n=5, p=1, min_max = (0, 20)) -> dict:
         "p": p,
         "profiles": [],
         "weights": [],
-        "lmbda": np.random.uniform(0.5, 1),
+        "lmbda": value_quantization(np.random.uniform(0.5, 1)),
     }
     for i in range(n):
         params['weights'].append(np.random.uniform(0, 1))
@@ -42,7 +47,7 @@ def get_random_params(n_generated = 100,n=5, p=1, min_max = (0, 20)) -> dict:
         weights_sum = 1
         params['weights'][0] = 1
     for i in range(n): # Normalize weights to sumup to 1
-        params["weights"][i] = params["weights"][i] / weights_sum
+        params["weights"][i] = value_quantization(params["weights"][i] / weights_sum)
     
     profiles_transpose = []
     for i in range(n):
@@ -53,7 +58,7 @@ def get_random_params(n_generated = 100,n=5, p=1, min_max = (0, 20)) -> dict:
         items_profiles.sort()
         profiles_transpose.append(items_profiles)
     for j in range(p):
-        params['profiles'].append([profiles_transpose[i][j] for i in range(n)])
+        params['profiles'].append([value_quantization(profiles_transpose[i][j]) for i in range(n)])
     return params
 
 def print_params(params: dict) -> None:

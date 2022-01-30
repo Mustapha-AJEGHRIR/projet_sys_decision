@@ -1,10 +1,12 @@
 
 from distutils.log import error
+
+from sympy import solve
 from mip import MIPSolver
 from data_generator import generate
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, precision_score, recall_score
 from config import default_eval_rounds, default_n_generated_list, default_n_list, output_folder
-from utils import get_random_params
+from utils import get_random_params, print_params
 from time import time
 from matplotlib import pyplot as plt
 from tqdm import tqdm
@@ -27,6 +29,7 @@ def eval_parameters(params : dict, verbose_results = True, verbose_progress = Fa
     data_train = generate(params, verbose=False, error_rate=error_rate)
     data_test = generate(params, verbose=False, error_rate=error_rate)
     test_classes = list(data_test['class'])
+    train_classes = list(data_train['class'])
     
     tik = time()
     solver = MIPSolver(data_train, None, verbose = verbose_progress)
@@ -34,6 +37,7 @@ def eval_parameters(params : dict, verbose_results = True, verbose_progress = Fa
     tok = time()
     duration = tok - tik
     predicted_classes = solver.predict(data_test.to_numpy()[:,:-1]) # [:,:-1] to remove the class column
+    train_predicted_classes = solver.predict(data_train.to_numpy()[:,:-1]) # [:,:-1] to remove the class column
 
     acc = accuracy_score(test_classes, predicted_classes)
     prec = precision_score(test_classes, predicted_classes, average='macro')
@@ -44,11 +48,23 @@ def eval_parameters(params : dict, verbose_results = True, verbose_progress = Fa
         mtrx = confusion_matrix(test_classes, predicted_classes).__str__()
         for line in mtrx.split("\n"):
             print("\t" + line)
+        print("\t\t=> Accuracy :\t {:.2}".format(acc))
+        print("\t\t=> Precision :\t {:.2}".format(prec))
+        print("\t\t=> Recall :\t {:.2}".format(rec))
+        print("\t\t=> F1 :\t {:.2}".format(f1))
         
-        print("=> Accuracy :\t {:.2}".format(acc))
-        print("=> Precision :\t {:.2}".format(prec))
-        print("=> Recall :\t {:.2}".format(rec))
-        print("=> F1 :\t {:.2}".format(f1))
+        print("=> Confusion Matrix over train (Reconstruction) :")
+        mtrx = confusion_matrix(train_classes, train_predicted_classes).__str__()
+        for line in mtrx.split("\n"):
+            print("\t" + line)
+            
+        for i in range(len(train_classes)):
+            if train_classes[i] != train_predicted_classes[i]:
+                pass
+                # print("i = {} \t found {} instead of {}".format(i, train_predicted_classes[i], train_classes[i]))
+                # print(data_train.iloc[i])
+        # print_params(params)
+        # solver.get_solution(True)
     
     return acc, prec, rec, f1, duration
 

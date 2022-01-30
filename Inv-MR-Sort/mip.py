@@ -4,6 +4,7 @@ see parag 3 in:
 https://www.researchgate.net/publication/221367488_Learning_the_Parameters_of_a_Multiple_Criteria_Sorting_Method
 """
 
+from errno import EPIPE
 import numpy as np
 import pandas as pd
 import os
@@ -11,6 +12,7 @@ import collections
 from gurobipy import Model, GRB, quicksum
 from config import solution_saving_path, data_saving_path
 from utils import Capturing # to make Gurobi quiet
+from utils import value_quantization
 from instance_generation import mr_sort
 
 class MIPSolver:
@@ -18,7 +20,7 @@ class MIPSolver:
         self,
         data_file=data_saving_path,
         sol_file=solution_saving_path,
-        epsilon=0.0000000001,
+        epsilon=0.0000001,
         M=100,
         verbose=False,
     ):
@@ -39,8 +41,11 @@ class MIPSolver:
     def build_model(self):
         with Capturing() as output:
             m = Model("Mixed integer linear program")
-            m.setParam("SolutionLimit", 2) #TODO revoir le sens de la Solutionlimit
-            m.setParam("OptimalityTol", 1e-2)
+            # m.setParam("SolutionLimit", 2) #TODO revoir le sens de la Solutionlimit
+            # m.setParam("OptimalityTol", 1e-9)
+            # m.setParam("FeasibilityTol", 1e-9)
+            # m.setParam("IntFeasTol", 1e-9)
+            # m.setParam("Quad", 1)
 
         self.n = n = len(self.data.columns) - 1
         self.p = p = self.data["class"].max()
@@ -60,7 +65,6 @@ class MIPSolver:
         ]  # get mark of instance j in criteria i
 
         # --------------------------------- Variables -------------------------------- #
-        # https://support.gurobi.com/hc/en-us/community/posts/360077803892-Is-there-a-rule-to-write-addvar-or-addvars-
         c = m.addVars(
             [(i, j, l) for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end)], name="c", vtype=GRB.CONTINUOUS, lb=0, ub=1
         )
@@ -91,7 +95,7 @@ class MIPSolver:
         # eq (6)
         m.addConstrs(c[i, j, l] <= w[i] for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end))
         m.addConstrs(c[i, j, l] <= delta[i, j, l] for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end))
-        m.addConstrs(c[i, j, l] >= delta[i, j, l] - 1 + w[i] for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end))
+        m.addConstrs(c[i, j, l] >=  delta[i, j, l] - 1 + w[i] for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end))
         m.addConstrs(M * delta[i, j, l] + EPSILON >= g(i, j) - b[i, l] for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end))
         m.addConstrs(M * (delta[i, j, l] - 1) <= g(i, j) - b[i, l] for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end))
         m.addConstrs(b[i, h+1] >= b[i, h] for i in N for h in K_no_no_end)
@@ -105,7 +109,10 @@ class MIPSolver:
         with Capturing() as output:
             m = Model("Mixed integer linear program")
             # m.setParam("SolutionLimit", 2) #TODO revoir le sens de la Solutionlimit
-            # m.setParam("OptimalityTol", 1e-2)
+            m.setParam("OptimalityTol", 1e-9)
+            m.setParam("FeasibilityTol", 1e-9)
+            m.setParam("IntFeasTol", 1e-9)
+            m.setParam("Quad", 1)
 
         self.n = n = len(self.data.columns) - 1
         self.p = p = self.data["class"].max()
@@ -126,7 +133,6 @@ class MIPSolver:
         ]  # get mark of instance j in criteria i
 
         # --------------------------------- Variables -------------------------------- #
-        # https://support.gurobi.com/hc/en-us/community/posts/360077803892-Is-there-a-rule-to-write-addvar-or-addvars-
         c = m.addVars(
             [(i, j, l) for i in N for h in K for j in J_h[h] for l in {h-1, h}.intersection(K_no_end)], name="c", vtype=GRB.CONTINUOUS, lb=0, ub=1
         )
@@ -168,9 +174,17 @@ class MIPSolver:
         if error_rate > 0:
             self.build_model_errors()
             self.model.optimize()
+            # path = os.path.join(os.path.dirname(__file__), "output", "model.lp")
+            # self.model.write(path)
+            # print("opt : ", self.model.objVal)
+            # print("status : ", self.model.status)
         else :
             self.build_model()
             self.model.optimize()
+            # path = os.path.join(os.path.dirname(__file__), "output", "model.lp")
+            # self.model.write(path)
+            # print("opt : ", self.model.objVal)
+            # print("status : ", self.model.status)
         
         self.trained = True
         
@@ -186,13 +200,13 @@ class MIPSolver:
         
         profiles = [] #[[]]
         weights = []
-        lmbda = self.model.getVarByName("lmbda").x
+        lmbda = value_quantization(self.model.getVarByName("lmbda").x)
         for i in range(self.n):
-            weights.append(self.model.getVarByName("w[" + str(i) + "]").x)
+            weights.append(value_quantization(self.model.getVarByName("w[" + str(i) + "]").x))
         for h in range(self.p):
             profiles.append([])
             for i in range(self.n):
-                profiles[h].append(self.model.getVarByName("b[" + str(i) + ","+ str(h+1) +"]").x)
+                profiles[h].append(value_quantization(self.model.getVarByName("b[" + str(i) + ","+ str(h+1) +"]").x))
         
         if verbose or (verbose == None and self.verbose):
             print("Solution :")
