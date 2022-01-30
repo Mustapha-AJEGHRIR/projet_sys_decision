@@ -63,7 +63,7 @@ def ncs(marks, criteria, coalitions, profiles):
     return h + 1
 
 
-def generate_one(criteria, coalitions, profiles, std=2, noise_prob=0):
+def generate_one(criteria, coalitions, profiles, std=2, mu=0.001):
     """
     Generates an instance (marks + class).
 
@@ -81,9 +81,9 @@ def generate_one(criteria, coalitions, profiles, std=2, noise_prob=0):
     marks = np.clip(marks, 0, 20)
 
     category = ncs(marks, criteria, coalitions, profiles)
-    # add noise
-    if np.random.rand() < noise_prob:
-        category = np.random.choice(range(len(profiles) + 1))
+    # add assignment errors
+    if np.random.rand() < mu:
+        category = np.random.choice( [c for c in [category - 1, category + 1] if 0 <= c < len(profiles)])
     return list(marks) + [category]
 
 
@@ -123,7 +123,7 @@ def generate_data(params: dict, verbose=False, balanced=True) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    data = generate_data(config.good_case_3, balanced=True, verbose=True)
+    data = generate_data(config.params, balanced=True, verbose=True)
 
     # save data
     os.makedirs(os.path.dirname(config.data_saving_path), exist_ok=True)
