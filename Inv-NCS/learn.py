@@ -1,5 +1,5 @@
 """
-This file is used to solve the Inverse NCS problem using data previously generated in `data_saving_path`.
+This file is used to solve the Inverse NCS problem using data previously generated in `learning_data_path`.
 """
 
 
@@ -7,13 +7,13 @@ import os
 import pandas as pd
 from sat import SATSolver
 from maxsat import MaxSATSolver
-from config import data_saving_path, solution_saving_path, dimacs_saving_path, gophersat_path
+from config import learning_data_path, solution_saving_path, dimacs_saving_path, gophersat_path
 from pyfiglet import Figlet
 
 
 def inverse_ncs(
     solver_name="MaxSAT",
-    data_file=data_saving_path,
+    data_file=learning_data_path,
     save_path=solution_saving_path,
     dimacs_saving_path=dimacs_saving_path,
     gophersat_path=gophersat_path,

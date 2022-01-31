@@ -30,6 +30,8 @@ class SATSolver:
             self.data = pd.read_csv(data_file, index_col=0)
         else:  # if data_file is a dataframe
             self.data = data_file
+        self.mistakes = self.data["is_mistake"]
+        self.data.drop(columns=["is_mistake"], inplace=True)
 
         self.i2v = None
         self.y_vars_start = None  # index of the first y variable

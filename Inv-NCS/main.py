@@ -12,7 +12,7 @@ if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
     print(Figlet(font="slant").renderText("Inverse NCS"))
 
-    data = generate_data(config.params, balanced=True)
+    test_data, learning_data = generate_data(config.params, balanced=True, verbose=True)
 
-    inverse_ncs(solver_name="MaxSAT", data_file=data, print_solution=True, save_solution=True)
+    inverse_ncs(solver_name="MaxSAT", data_file=learning_data, print_solution=True, save_solution=True)
 

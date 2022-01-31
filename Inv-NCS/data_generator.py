@@ -86,7 +86,7 @@ def generate_one(criteria, coalitions, profiles, std=2):
     return list(marks) + [category]
 
 
-def generate_data(params: dict, verbose=False, balanced=True, save=True) -> pd.DataFrame:
+def generate_data(params: dict, verbose=False, balanced=True, save=True) -> [pd.DataFrame, pd.DataFrame]:
     """
     Generates the data for the Inverse NCS problem.
 
@@ -100,31 +100,16 @@ def generate_data(params: dict, verbose=False, balanced=True, save=True) -> pd.D
     if verbose:
         print("Verifying parameters...")
     criteria, coalitions, profiles, n_ground_truth, n_learning_set, mu = parse_from_dict(params)
-    n = len(criteria)
-    data_list = []
-    if balanced:
-        counts = defaultdict(int)
     print("Generating ground truth data...")
-    for _ in tqdm(range(n_ground_truth)):
-        instance = generate_one(criteria, coalitions, profiles)
-        if balanced:
-            while counts[instance[-1]] >= np.ceil(n_ground_truth / (len(profiles) + 1)):
-                instance = generate_one(criteria, coalitions, profiles)
-            counts[instance[-1]] += 1
-        data_list.append(instance)
-    data = pd.DataFrame(data_list, columns=["criterion_" + str(i) for i in range(n)] + ["class"])
-    if verbose:
-        print("Classes generated:")
-        for cls, count in sorted(counts.items()):
-            print(f"\tClass {cls}: {count}")
-        print()
+    test_data = _generate_data(criteria, coalitions, profiles, n_ground_truth, verbose=verbose, balanced=balanced)
     if save:
-        # save data
+        # save test_data
         os.makedirs(os.path.dirname(config.data_saving_path), exist_ok=True)
-        data.to_csv(config.data_saving_path, index=True)
+        test_data.to_csv(config.data_saving_path, index=True)
+
 
     print("Generating learning set data...")
-    learning_data = data.sample(n_learning_set)
+    learning_data = _generate_data(criteria, coalitions, profiles, n_learning_set, verbose=verbose, balanced=balanced)
     learning_data["is_mistake"] = False
     # add assignment mistakes
     mistakes_indexes = np.random.choice(range(len(learning_data)), size=int(len(learning_data) * mu), replace=False)
@@ -138,17 +123,34 @@ def generate_data(params: dict, verbose=False, balanced=True, save=True) -> pd.D
         )
         learning_data.loc[i, "class"] = int(category)
         learning_data.loc[i, "is_mistake"] = True
+    learning_data["class"] = learning_data["class"].astype(int)
     if verbose:
         print("Number of mistakes:", len(mistakes_indexes))
-        print("Classes generated:")
-        # count the classes
-        for cls, count in learning_data["class"].value_counts().items():
-            print(f"\tClass {cls}: {count}")
-        print()
     if save:
         os.makedirs(os.path.dirname(config.learning_data_path), exist_ok=True)
         learning_data.to_csv(config.learning_data_path, index=True)
-    return data, learning_data
+    return test_data, learning_data
+
+def _generate_data(criteria, coalitions, profiles, n_generated, verbose, balanced):
+    n = len(criteria)
+    data_list = []
+    if balanced:
+        counts = defaultdict(int)
+    for _ in tqdm(range(n_generated)):
+        instance = generate_one(criteria, coalitions, profiles)
+        if balanced:
+            while counts[instance[-1]] >= np.ceil(n_generated / (len(profiles) + 1)):
+                instance = generate_one(criteria, coalitions, profiles)
+            counts[instance[-1]] += 1
+        data_list.append(instance)
+    data = pd.DataFrame(data_list, columns=["criterion_" + str(i) for i in range(n)] + ["class"])
+
+    if verbose:
+        print("Classes generated:")
+        for cls, count in sorted(counts.items()):
+            print(f"\tClass {cls}: {count}")
+        print()
+    return data
 
 
 if __name__ == "__main__":

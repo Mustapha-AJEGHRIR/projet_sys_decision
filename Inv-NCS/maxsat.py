@@ -30,6 +30,8 @@ class MaxSATSolver:
             self.data = pd.read_csv(data_file, index_col=0)
         else:  # if data_file is a dataframe
             self.data = data_file
+        self.mistakes = self.data["is_mistake"]
+        self.data.drop(columns=["is_mistake"], inplace=True)
 
         self.i2v = None
         self.n = None  # number of criteria
@@ -191,8 +193,8 @@ class MaxSATSolver:
     def _clauses_to_dimacs(self, clauses, weights, numvar):
         # Convert a list of clauses to a DIMACS format
         # more info: http://www.maxsat.udl.cat/08/index.php?disp=requirements
-        dimacs = "c This is it\np wcnf " + str(numvar) + " " + str(len(clauses)) + "\n"
-        # dimacs = "c This is it\np wcnf " + str(numvar) + " " + str(len(clauses)) + " " + str(self.w_max) + "\n"
+        dimacs = "c This is it\np wcnf " + str(numvar) + " " + str(len(clauses)) + "\n" # Weighted Max-SAT 
+        # dimacs = "c This is it\np wcnf " + str(numvar) + " " + str(len(clauses)) + " " + str(self.w_max) + "\n" # Weigthed Partial Max-SAT
         for clause, w in zip(clauses, weights):
             dimacs += str(w) + " " + " ".join(map(str, clause)) + " 0\n"
         return dimacs
@@ -205,7 +207,7 @@ class MaxSATSolver:
         cmd = self.gophersat_path
         print(f"Solving with {cmd}...")
         start = time.time()
-        result = subprocess.run([cmd, filename], stdout=subprocess.PIPE, check=True, encoding=encoding)
+        result = subprocess.run([cmd, "--verbose", filename], stdout=subprocess.PIPE, check=True, encoding=encoding)
         delta_t = time.time() - start
         print(f"Solving took {delta_t:.4f} seconds")
         string = str(result.stdout)
@@ -213,17 +215,22 @@ class MaxSATSolver:
             f.write(string)
         lines = string.splitlines()
 
-        if lines[2] != "s OPTIMUM FOUND":
-            return {
-                "satisfiable": False,
-                "variables": {},
-                "resolution_time": delta_t,
-            }
+        for i, line in enumerate(lines):
+            if line[0] == "s":
+                if line[2:]!= "OPTIMUM FOUND":
+                    return {
+                        "satisfiable": False,
+                        "variables": {},
+                        "resolution_time": delta_t,
+                    }
+                else:
+                    variables = lines[i+1][2:].split(" ")
+                    variables = [int(x.replace("x", "")) for x in variables if x != ""]
+                    return {
+                        "satisfiable": True,
+                        "variables": {self.i2v[abs(v)]: v > 0 for v in variables},
+                        "resolution_time": delta_t,
+                    }
+        raise Exception(f"Error in output format. Please check {self.solver_log_file}")
 
-        variables = lines[3][2:].split(" ")
-        variables = [int(x.replace("x", "")) for x in variables if x != ""]
-        return {
-            "satisfiable": True,
-            "variables": {self.i2v[abs(v)]: v > 0 for v in variables},
-            "resolution_time": delta_t,
-        }
+
