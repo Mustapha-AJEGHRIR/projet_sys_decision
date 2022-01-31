@@ -100,15 +100,16 @@ def generate_data(params: dict, verbose=False, balanced=True, save=True) -> [pd.
     if verbose:
         print("Verifying parameters...")
     criteria, coalitions, profiles, n_ground_truth, n_learning_set, mu = parse_from_dict(params)
-    print("Generating ground truth data...")
+    if verbose:
+        print("Generating ground truth data...")
     test_data = _generate_data(criteria, coalitions, profiles, n_ground_truth, verbose=verbose, balanced=balanced)
     if save:
         # save test_data
         os.makedirs(os.path.dirname(config.data_saving_path), exist_ok=True)
         test_data.to_csv(config.data_saving_path, index=True)
 
-
-    print("Generating learning set data...")
+    if verbose:
+        print("Generating learning set data...")
     learning_data = _generate_data(criteria, coalitions, profiles, n_learning_set, verbose=verbose, balanced=balanced)
     learning_data["is_mistake"] = False
     # add assignment mistakes
@@ -131,12 +132,13 @@ def generate_data(params: dict, verbose=False, balanced=True, save=True) -> [pd.
         learning_data.to_csv(config.learning_data_path, index=True)
     return test_data, learning_data
 
+
 def _generate_data(criteria, coalitions, profiles, n_generated, verbose, balanced):
     n = len(criteria)
     data_list = []
     if balanced:
         counts = defaultdict(int)
-    for _ in tqdm(range(n_generated)):
+    for _ in tqdm(range(n_generated), disable=not verbose):
         instance = generate_one(criteria, coalitions, profiles)
         if balanced:
             while counts[instance[-1]] >= np.ceil(n_generated / (len(profiles) + 1)):

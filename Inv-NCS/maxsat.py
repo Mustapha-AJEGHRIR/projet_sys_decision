@@ -12,6 +12,7 @@ from config import solution_saving_path, learning_data_path, dimacs_saving_path,
 import subprocess
 from itertools import combinations
 import time
+from data_generator import ncs
 
 
 class MaxSATSolver:
@@ -36,6 +37,7 @@ class MaxSATSolver:
         self.i2v = None
         self.n = None  # number of criteria
         self.build_model()
+        self.learnt_params = {}
 
     def build_model(self):
         # Resolution of NCS
@@ -49,13 +51,13 @@ class MaxSATSolver:
 
         # make all possible combinations of criteria of all lengths
         criteria_combinations = []
-        for i in range(0, self.n+1):
+        for i in range(0, self.n + 1):
             criteria_combinations += list(combinations(range(self.n), i))
 
         # X[i] = list of marks in criterion i;
         X = np.array([self.data.iloc[:, i] for i in criteria])
 
-        counter = iter(range(1, X.size * (p-1) + len(criteria_combinations) * (p-1) + len(self.data.index) + 1))
+        counter = iter(range(1, X.size * (p - 1) + len(criteria_combinations) * (p - 1) + len(self.data.index) + 1))
         # x[i,h,k] positive  means the mark k validates the criterion i wrt the profile b_h
         self.x = x = {}
         for i in criteria:
@@ -131,9 +133,9 @@ class MaxSATSolver:
         self.myDimacs = self._clauses_to_dimacs(self.myClauses, self.weights, len(variables))
         self._write_dimacs_file(self.myDimacs, self.dimacs_file)
 
-    def solve(self, save_solution=True):
+    def solve(self, save_solution=True, verbose=True):
         # Start the solver
-        sol = self._exec_gophersat(self.dimacs_file)
+        sol = self._exec_gophersat(self.dimacs_file, verbose=verbose)
 
         # find profiles intervals
         profiles_intervals = [[[0, 20] for _ in range(self.n)] for _ in range(self.p - 1)]
@@ -145,8 +147,8 @@ class MaxSATSolver:
                 profiles_intervals[h - 1][criterion][0] = max(profiles_intervals[h - 1][criterion][0], mark)
         sol["profiles_intervals"] = profiles_intervals
 
-        sol["sufficient_coalitions"] = {} # {B: [h where B is sufficient at level h]}
-        for var, is_sufficient in list(sol["variables"].items())[len(self.x) :len(self.x) + len(self.y)]:
+        sol["sufficient_coalitions"] = {}  # {B: [h where B is sufficient at level h]}
+        for var, is_sufficient in list(sol["variables"].items())[len(self.x) : len(self.x) + len(self.y)]:
             B, h = var
             if is_sufficient:
                 if B in sol["sufficient_coalitions"]:
@@ -154,8 +156,8 @@ class MaxSATSolver:
                 else:
                     sol["sufficient_coalitions"][B] = [h]
 
-        sol["correctly_classified"] = [] # indexes of correctly classified instances
-        sol["uncorrectly_classified"] = [] # indexes of incorrectly classified instances
+        sol["correctly_classified"] = []  # indexes of correctly classified instances
+        sol["uncorrectly_classified"] = []  # indexes of incorrectly classified instances
         for var, is_correctly_classified in list(sol["variables"].items())[len(self.x) + len(self.y) :]:
             u = var
             if is_correctly_classified:
@@ -188,12 +190,27 @@ class MaxSATSolver:
                 for c in sol["variables"]:
                     f.write("\t" + str(c) + ": " + str(sol["variables"][c]) + "\n")
 
+        self.learnt_params = {
+            "criteria": list(range(self.n)),
+            "coalitions": sol["sufficient_coalitions"],
+            "profiles_intervals": [
+                [(h_min + h_max) / 2 for h_min, h_max in profile] for profile in sol["profiles_intervals"]
+            ],
+        }
         return sol
+
+    def predict(self, X: np.ndarray) -> list:
+        predicted_classes = X.apply(self._predict_instance, axis=1, args=(self.learnt_params,)).to_list()
+        return predicted_classes
+
+    def _predict_instance(self, marks, params):
+        criteria, coalitions, profiles = params["criteria"], params["coalitions"], params["profiles_intervals"]
+        return ncs(marks, criteria, coalitions, profiles)
 
     def _clauses_to_dimacs(self, clauses, weights, numvar):
         # Convert a list of clauses to a DIMACS format
         # more info: http://www.maxsat.udl.cat/08/index.php?disp=requirements
-        dimacs = "c This is it\np wcnf " + str(numvar) + " " + str(len(clauses)) + "\n" # Weighted Max-SAT 
+        dimacs = "c This is it\np wcnf " + str(numvar) + " " + str(len(clauses)) + "\n"  # Weighted Max-SAT
         # dimacs = "c This is it\np wcnf " + str(numvar) + " " + str(len(clauses)) + " " + str(self.w_max) + "\n" # Weigthed Partial Max-SAT
         for clause, w in zip(clauses, weights):
             dimacs += str(w) + " " + " ".join(map(str, clause)) + " 0\n"
@@ -203,13 +220,15 @@ class MaxSATSolver:
         with open(filename, "w", newline="") as cnf:
             cnf.write(dimacs)
 
-    def _exec_gophersat(self, filename, encoding="utf8"):
+    def _exec_gophersat(self, filename, encoding="utf8", verbose=True):
         cmd = self.gophersat_path
-        print(f"Solving with {cmd}...")
+        if verbose:
+            print(f"Solving with {cmd}...")
         start = time.time()
         result = subprocess.run([cmd, "--verbose", filename], stdout=subprocess.PIPE, check=True, encoding=encoding)
         delta_t = time.time() - start
-        print(f"Solving took {delta_t:.4f} seconds")
+        if verbose:
+            print(f"Solving took {delta_t:.4f} seconds")
         string = str(result.stdout)
         with open(self.solver_log_file, "w", newline="") as f:
             f.write(string)
@@ -217,14 +236,14 @@ class MaxSATSolver:
 
         for i, line in enumerate(lines):
             if line[0] == "s":
-                if line[2:]!= "OPTIMUM FOUND":
+                if line[2:] != "OPTIMUM FOUND":
                     return {
                         "satisfiable": False,
                         "variables": {},
                         "resolution_time": delta_t,
                     }
                 else:
-                    variables = lines[i+1][2:].split(" ")
+                    variables = lines[i + 1][2:].split(" ")
                     variables = [int(x.replace("x", "")) for x in variables if x != ""]
                     return {
                         "satisfiable": True,
@@ -232,5 +251,4 @@ class MaxSATSolver:
                         "resolution_time": delta_t,
                     }
         raise Exception(f"Error in output format. Please check {self.solver_log_file}")
-
 
