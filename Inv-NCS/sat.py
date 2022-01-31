@@ -8,7 +8,7 @@ https://www.researchgate.net/publication/221367488_Learning_the_Parameters_of_a_
 import numpy as np
 import pandas as pd
 import os
-from config import solution_saving_path, data_saving_path, dimacs_saving_path, gophersat_path, solver_log_path
+from config import solution_saving_path, learning_data_path, dimacs_saving_path, gophersat_path, solver_log_path
 import subprocess
 from itertools import combinations
 import time
@@ -17,7 +17,7 @@ import time
 class SATSolver:
     def __init__(
         self,
-        data_file=data_saving_path,
+        data_file=learning_data_path,
         sol_file=solution_saving_path,
         dimacs_file=dimacs_saving_path,
         gophersat_path=gophersat_path,

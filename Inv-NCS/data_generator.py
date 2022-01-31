@@ -12,19 +12,21 @@ import os
 
 
 def parse_from_dict(params):
-    criteria, coalitions, profiles, n_generated = (
-        params["criteria"],
-        params["coalitions"],
-        params["profiles"],
-        params["n_generated"],
-    )
     """
     Parses and validates the parameters from a dictionary.
     """
+    criteria, coalitions, profiles, n_ground_truth, n_learning_set, mu = (
+        params["criteria"],
+        params["coalitions"],
+        params["profiles"],
+        params["n_ground_truth"],
+        params["n_learning_set"],
+        params["mu"],
+    )
     n = len(criteria)
 
     assert n > 0, "Number of criteria must be greater than 0"
-    assert n_generated > 0, "Number of generated instances must be greater than 0"
+    assert n_ground_truth > 0 and n_learning_set > 0, "Number of generated instances must be greater than 0"
     for i, profile in enumerate(profiles):
         assert len(profile) == n, "Profile {} has {} criteria, but {} were specified".format(i + 1, len(profile), n)
     for h in range(1, len(profiles)):
@@ -44,7 +46,7 @@ def parse_from_dict(params):
                 profiles[h][i] != profiles[h - 1][i] for i in coalition
             ), f"Profile {h + 1} has the same frontier for criteria {coalition} than profile {h}"
 
-    return criteria, coalitions, profiles, n_generated
+    return criteria, coalitions, profiles, n_ground_truth, n_learning_set, mu
 
 
 def ncs(marks, criteria, coalitions, profiles):
@@ -63,7 +65,7 @@ def ncs(marks, criteria, coalitions, profiles):
     return h + 1
 
 
-def generate_one(criteria, coalitions, profiles, std=2, mu=0.001):
+def generate_one(criteria, coalitions, profiles, std=2):
     """
     Generates an instance (marks + class).
 
@@ -81,13 +83,10 @@ def generate_one(criteria, coalitions, profiles, std=2, mu=0.001):
     marks = np.clip(marks, 0, 20)
 
     category = ncs(marks, criteria, coalitions, profiles)
-    # add assignment errors
-    if np.random.rand() < mu:
-        category = np.random.choice( [c for c in [category - 1, category + 1] if 0 <= c < len(profiles)])
     return list(marks) + [category]
 
 
-def generate_data(params: dict, verbose=False, balanced=True) -> pd.DataFrame:
+def generate_data(params: dict, verbose=False, balanced=True, save=True) -> pd.DataFrame:
     """
     Generates the data for the Inverse NCS problem.
 
@@ -100,16 +99,16 @@ def generate_data(params: dict, verbose=False, balanced=True) -> pd.DataFrame:
     """
     if verbose:
         print("Verifying parameters...")
-    criteria, coalitions, profiles, n_generated = parse_from_dict(params)
+    criteria, coalitions, profiles, n_ground_truth, n_learning_set, mu = parse_from_dict(params)
     n = len(criteria)
     data_list = []
     if balanced:
         counts = defaultdict(int)
-    print("Generating data...")
-    for _ in tqdm(range(n_generated)):
+    print("Generating ground truth data...")
+    for _ in tqdm(range(n_ground_truth)):
         instance = generate_one(criteria, coalitions, profiles)
         if balanced:
-            while counts[instance[-1]] >= np.ceil(n_generated / (len(profiles) + 1)):
+            while counts[instance[-1]] >= np.ceil(n_ground_truth / (len(profiles) + 1)):
                 instance = generate_one(criteria, coalitions, profiles)
             counts[instance[-1]] += 1
         data_list.append(instance)
@@ -119,12 +118,39 @@ def generate_data(params: dict, verbose=False, balanced=True) -> pd.DataFrame:
         for cls, count in sorted(counts.items()):
             print(f"\tClass {cls}: {count}")
         print()
-    return data
+    if save:
+        # save data
+        os.makedirs(os.path.dirname(config.data_saving_path), exist_ok=True)
+        data.to_csv(config.data_saving_path, index=True)
+
+    print("Generating learning set data...")
+    learning_data = data.sample(n_learning_set)
+    learning_data["is_mistake"] = False
+    # add assignment mistakes
+    mistakes_indexes = np.random.choice(range(len(learning_data)), size=int(len(learning_data) * mu), replace=False)
+    for i in mistakes_indexes:
+        category = np.random.choice(
+            [
+                c
+                for c in [learning_data.iloc[i]["class"] - 1, learning_data.iloc[i]["class"] + 1]
+                if 0 <= c < len(profiles)
+            ]
+        )
+        learning_data.loc[i, "class"] = int(category)
+        learning_data.loc[i, "is_mistake"] = True
+    if verbose:
+        print("Number of mistakes:", len(mistakes_indexes))
+        print("Classes generated:")
+        # count the classes
+        for cls, count in learning_data["class"].value_counts().items():
+            print(f"\tClass {cls}: {count}")
+        print()
+    if save:
+        os.makedirs(os.path.dirname(config.learning_data_path), exist_ok=True)
+        learning_data.to_csv(config.learning_data_path, index=True)
+    return data, learning_data
 
 
 if __name__ == "__main__":
-    data = generate_data(config.params, balanced=True, verbose=True)
+    data, learning_data = generate_data(config.params, balanced=True, verbose=True, save=True)
 
-    # save data
-    os.makedirs(os.path.dirname(config.data_saving_path), exist_ok=True)
-    data.to_csv(config.data_saving_path, index=True)

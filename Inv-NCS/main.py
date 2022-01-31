@@ -12,11 +12,7 @@ if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
     print(Figlet(font="slant").renderText("Inverse NCS"))
 
-    data = generate_data(config.good_case_3, balanced=True)
-
-    # save data
-    os.makedirs(os.path.dirname(config.data_saving_path), exist_ok=True)
-    data.to_csv(config.data_saving_path, index=True)
+    data = generate_data(config.params, balanced=True)
 
     inverse_ncs(solver_name="MaxSAT", data_file=data, print_solution=True, save_solution=True)
 
