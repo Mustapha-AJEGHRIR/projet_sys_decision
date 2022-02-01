@@ -4,6 +4,7 @@ from distutils.log import error
 from sympy import solve
 from mip import MIPSolver
 from data_generator import generate
+from instance_generation import mr_sort_correction
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, precision_score, recall_score
 from config import default_eval_rounds, default_n_generated_list, default_n_list, output_folder
 from utils import get_random_params, print_params
@@ -27,9 +28,12 @@ def eval_parameters(params : dict, verbose_results = True, verbose_progress = Fa
         tuple -- (accuracy, precision, recall, f1)
     """
     data_train = generate(params, verbose=False, error_rate=error_rate)
-    data_test = generate(params, verbose=False, error_rate=error_rate)
+    data_test = generate(params, verbose=False, error_rate=0)
+    data_train_coorected, n_error = mr_sort_correction(data_train, params)
+    print("Errors in the training data: {}".format(n_error))
+    
     test_classes = list(data_test['class'])
-    train_classes = list(data_train['class'])
+    train_real_classes = list(data_train_coorected['class'])
     
     tik = time()
     solver = MIPSolver(data_train, None, verbose = verbose_progress)
@@ -54,17 +58,18 @@ def eval_parameters(params : dict, verbose_results = True, verbose_progress = Fa
         print("\t\t=> F1 :\t {:.2}".format(f1))
         
         print("=> Confusion Matrix over train (Reconstruction) :")
-        mtrx = confusion_matrix(train_classes, train_predicted_classes).__str__()
+        mtrx = confusion_matrix(train_real_classes, train_predicted_classes).__str__()
         for line in mtrx.split("\n"):
             print("\t" + line)
             
-        for i in range(len(train_classes)):
-            if train_classes[i] != train_predicted_classes[i]:
+        for i in range(len(train_real_classes)):
+            if train_real_classes[i] != train_predicted_classes[i]:
                 pass
                 # print("i = {} \t found {} instead of {}".format(i, train_predicted_classes[i], train_classes[i]))
                 # print(data_train.iloc[i])
         # print_params(params)
         # solver.get_solution(True)
+        print("Reconstruction rate : ", accuracy_score(train_real_classes, train_predicted_classes))
     
     return acc, prec, rec, f1, duration
 

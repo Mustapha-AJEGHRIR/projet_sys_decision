@@ -4,6 +4,7 @@ see parag 3 in:
 https://www.researchgate.net/publication/221367488_Learning_the_Parameters_of_a_Multiple_Criteria_Sorting_Method
 """
 
+from decimal import Rounded
 from errno import EPIPE
 import numpy as np
 import pandas as pd
@@ -20,8 +21,8 @@ class MIPSolver:
         self,
         data_file=data_saving_path,
         sol_file=solution_saving_path,
-        epsilon=0.0000001,
-        M=100,
+        epsilon=0.000001,
+        M=1000,
         verbose=False,
     ):
         self.sol_file = sol_file
@@ -200,20 +201,28 @@ class MIPSolver:
         
         profiles = [] #[[]]
         weights = []
-        lmbda = value_quantization(self.model.getVarByName("lmbda").x)
+        lmbda = self.model.getVarByName("lmbda").x
         for i in range(self.n):
-            weights.append(value_quantization(self.model.getVarByName("w[" + str(i) + "]").x))
+            weights.append(self.model.getVarByName("w[" + str(i) + "]").x)
         for h in range(self.p):
             profiles.append([])
             for i in range(self.n):
-                profiles[h].append(value_quantization(self.model.getVarByName("b[" + str(i) + ","+ str(h+1) +"]").x))
+                profiles[h].append(self.model.getVarByName("b[" + str(i) + ","+ str(h+1) +"]").x)
         
         if verbose or (verbose == None and self.verbose):
+            rounded_weights = [round(w, 3) for w in weights]
+            rounded_lmbda = round(lmbda, 3)
+            rounded_profiles = []
+            for h in range(self.p):
+                rounded_profiles.append([])
+                for i in range(self.n):
+                    rounded_profiles[h].append(round(profiles[h][i], 3))
+                
             print("Solution :")
             print("**********")
-            print("\t weights: ", weights)
-            print("\t profiles: ", profiles)
-            print("\t lmbda: ", lmbda)
+            print("\t weights: ", rounded_weights)
+            print("\t profiles: ", rounded_profiles)
+            print("\t lmbda: ", rounded_lmbda)
             
         return profiles, weights, lmbda
     

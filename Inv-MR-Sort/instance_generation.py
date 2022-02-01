@@ -3,7 +3,28 @@ This file contains the functions that generate the instances.
 """
 
 import numpy as np
+import pandas as pd
 from utils import value_quantization
+
+
+def mr_sort_correction(
+    data : pd.DataFrame, params: dict,
+) -> pd.DataFrame:
+    weights = params['weights']
+    profiles = params['profiles']
+    lmbda = params['lmbda']
+    n_errors = 0
+    corrected_data = data.copy()
+    for i in range(len(data)):
+        marks = data.iloc[i, :-1]
+        _class = data.iloc[i, -1]
+        real_class = mr_sort(marks, weights, profiles, lmbda)
+        if real_class != _class:
+            n_errors += 1
+        corrected_data.iloc[i, -1] = real_class
+    
+    return corrected_data, n_errors
+
 
 
 def mr_sort(
