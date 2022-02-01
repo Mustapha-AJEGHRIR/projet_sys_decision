@@ -69,6 +69,7 @@ def eval_parameters(params : dict, verbose_results = True, verbose_progress = Fa
                 # print(data_train.iloc[i])
         # print_params(params)
         # solver.get_solution(True)
+        print("Reconstruction rate : ", accuracy_score(train_real_classes, train_predicted_classes))
     
     return acc, prec, rec, f1, duration
 
