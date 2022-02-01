@@ -111,6 +111,7 @@ def generate_data(params: dict, verbose=False, balanced=True, save=True) -> [pd.
     if verbose:
         print("Generating learning set data...")
     learning_data = _generate_data(criteria, coalitions, profiles, n_learning_set, verbose=verbose, balanced=balanced)
+    correct_learning_data = learning_data.copy()
     learning_data["is_mistake"] = False
     # add assignment mistakes
     mistakes_indexes = np.random.choice(range(len(learning_data)), size=int(len(learning_data) * mu), replace=False)
@@ -130,7 +131,7 @@ def generate_data(params: dict, verbose=False, balanced=True, save=True) -> [pd.
     if save:
         os.makedirs(os.path.dirname(config.learning_data_path), exist_ok=True)
         learning_data.to_csv(config.learning_data_path, index=True)
-    return test_data, learning_data
+    return test_data, learning_data, correct_learning_data
 
 
 def _generate_data(criteria, coalitions, profiles, n_generated, verbose, balanced):
@@ -156,5 +157,5 @@ def _generate_data(criteria, coalitions, profiles, n_generated, verbose, balance
 
 
 if __name__ == "__main__":
-    data, learning_data = generate_data(config.params, balanced=True, verbose=True, save=True)
+    data, learning_data, _ = generate_data(config.params, balanced=True, verbose=True, save=True)
 

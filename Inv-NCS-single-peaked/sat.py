@@ -75,9 +75,15 @@ class SATSolver:
 
         C = lambda h: self.data.index[self.data["class"] == h]  # indexes of instances belonging to class h
 
-        # if student validates a criterion i with evaluation k, then another student with criterion k'>k validates this criterion surely
+        # if two students validate a criterion i with evaluation k and k'>k, then the mark k" where k <= k" <= k' must also validate i
         clauses_c1 = [
-            [x[i, h, kp], -x[i, h, k]] for h in range(1, p) for i in criteria for k in X[i] for kp in X[i] if k < kp
+            [x[i, h, kpp], -x[i, h, k], -x[i, h, kp]]
+            for h in range(1, p)
+            for i in criteria
+            for k in X[i]
+            for kp in X[i]
+            for kpp in X[i]
+            if k < kpp < kp
         ]
 
         # if student validates a criterion i wrt the profile b_h', then he must validate the criterion i wrt the profile b_h (h < h')
@@ -128,14 +134,31 @@ class SATSolver:
         # Start the solver
         sol = self._exec_gophersat(self.dimacs_file)
 
+        # find the anchor
+        anchor_marks = [None for _ in range(self.n)]
+        for var, is_satisfied in list(sol["variables"].items())[: len(self.x)]:
+            if is_satisfied:
+                criterion, h, mark = var
+                anchor_marks[criterion] = mark
         # find profiles intervals
-        profiles_intervals = [[[0, 20] for _ in range(self.n)] for _ in range(self.p - 1)]
-        for var, is_satisfied in list(sol["variables"].items())[: self.y_vars_start]:
+        profiles_intervals = [[[0, 20] for _ in range(self.n)] for _ in range(self.p )]
+        for var, is_satisfied in list(sol["variables"].items())[: len(self.x)]:
             criterion, h, mark = var
             if is_satisfied:  # marks validates criterion
                 profiles_intervals[h - 1][criterion][1] = min(profiles_intervals[h - 1][criterion][1], mark)
-            else:
-                profiles_intervals[h - 1][criterion][0] = max(profiles_intervals[h - 1][criterion][0], mark)
+                profiles_intervals[h][criterion][0] = max(profiles_intervals[h][criterion][0], mark)
+            elif anchor_marks[criterion] != None:
+                if mark > anchor_marks[criterion]:
+                    profiles_intervals[h][criterion][1] = min(profiles_intervals[h][criterion][1], mark)
+                else:
+                    profiles_intervals[h - 1][criterion][0] = max(profiles_intervals[h - 1][criterion][0], mark)
+        
+        for var, is_satisfied in list(sol["variables"].items())[: len(self.x)]:
+            criterion, h, mark = var
+            if is_satisfied:  # marks validates criterion
+                profiles_intervals[h - 1][criterion][1] = min(profiles_intervals[h - 1][criterion][1], mark)
+                profiles_intervals[h][criterion][0] = max(profiles_intervals[h][criterion][0], mark)
+        
         sol["profiles_intervals"] = profiles_intervals
 
         sol["sufficient_coalitions"] = {} # {B: [h where B is sufficient at level h]}

@@ -56,8 +56,10 @@ def eval_parameters(params: dict, verbose_results=True, verbose_progress=False) 
         print("=> Recall :\t {:.2}".format(rec))
         print("=> F1 :\t {:.2}".format(f1))
 
-    return acc, prec, rec, f1, duration
+    # # restoration rate
+    # restoration_rate = set(data_train[data_train["is_mistake"]].index)
 
+    return acc, prec, rec, f1, duration
 
 def multi_eval_parameters(
     n=9, p=3, n_generated=128, n_rounds=3, verbose_results=False, verbose_progress=False
