@@ -28,7 +28,7 @@ def eval_parameters(params : dict, verbose_results = True, verbose_progress = Fa
         tuple -- (accuracy, precision, recall, f1)
     """
     data_train = generate(params, verbose=False, error_rate=error_rate)
-    data_test = generate(params, verbose=False, error_rate=error_rate)
+    data_test = generate(params, verbose=False, error_rate=0)
     data_train_coorected, n_error = mr_sort_correction(data_train, params)
     print("Errors in the training data: {}".format(n_error))
     
