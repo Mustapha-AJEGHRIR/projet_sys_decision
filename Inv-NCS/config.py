@@ -14,7 +14,7 @@ gophersat_path = glob.glob(gophersat_dir + "/gophersat*")[0]
 
 
 # eval params
-default_n_generated_list = [32, 64, 256, 512, 1024]
+default_n_generated_list = [32, 64, 256, 512]
 default_n_list = [2, 3, 5, 7]
 default_mu_list = [0., 0.01, 0.05, 0.1, 0.2]
 default_eval_rounds = 1
