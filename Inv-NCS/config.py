@@ -19,16 +19,16 @@ default_n_list = [2, 3, 5, 7]
 default_mu_list = [0., 0.01, 0.05, 0.1, 0.2]
 default_eval_rounds = 1
 
-params2 = {
+params = {
     "criteria": list(range(3)),  # N
-    "coalitions": [[0, 1], [2]],  # B
-    "profiles": [[10, 10, 10], [11, 11, 11]],  # p=3
+    "coalitions": [[0], [1], [2]],  # B
+    "profiles": [[10, 10, 10], [15, 15, 15]],  # p=2
     "n_ground_truth": 1000,
-    "n_learning_set": 128,
+    "n_learning_set": 50,
     "mu": 0.1,  # pourcentage of misclassified instances
 }
 
-params = {
+params2 = {
     "criteria": list(range(9)),  # N
     "coalitions": [[0], [1], [2], [3], [4], [5], [6], [7], [8]],  # B
     "profiles": [[10, 10, 10, 10, 10, 10, 10, 10, 10], [11, 11, 11, 11, 11, 11, 11, 11, 11]],  # p=3
