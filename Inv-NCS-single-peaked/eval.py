@@ -9,6 +9,9 @@ from tqdm import tqdm
 import os
 import numpy as np
 
+default_n_generated_list = [200, 400, 600, 800, 1000, 1500, 2000, 3000]
+default_eval_rounds = 20
+default_n_list = [2, 3, 4, 5, 6, 7]
 output_folder = os.path.join(os.path.dirname(__file__), "output/")
 os.makedirs(output_folder + "/n_list", exist_ok=True)
 os.makedirs(output_folder + "/n_generated_list", exist_ok=True)
