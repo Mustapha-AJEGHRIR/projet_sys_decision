@@ -284,8 +284,8 @@ def plot_mu_effect_random(
             mu_list, np.percentile(measure[1], 25, axis=1), np.percentile(measure[1], 75, axis=1), alpha=0.5
         )
 
-        plt.title(f"Effect of number of criterias on {measure[0]}. n_generated = {n_generated} & p = {p}")
-        plt.xlabel("number of criterias")
+        plt.title(f"Effect of noise on {measure[0]}. n_generated = {n_generated} & p = {p}")
+        plt.xlabel("noise percentage (mu)")
         plt.ylabel(measure[0])
         plt.legend()
         plt.savefig(os.path.join(output_folder, f"mu_list/{measure[0]}_mu_list_effect.png"), dpi=300)
