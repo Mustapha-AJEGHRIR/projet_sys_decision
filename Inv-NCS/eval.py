@@ -143,6 +143,8 @@ def plot_n_generated_effect_random(
         ("duration", durations),
     ]:
         plt.figure()
+        if measure[0] != "duration":
+            plt.ylim(0, 1)
         plt.plot(n_generated_list, np.mean(measure[1], axis=1), label=measure[0])
         plt.fill_between(
             n_generated_list, np.percentile(measure[1], 25, axis=1), np.percentile(measure[1], 75, axis=1), alpha=0.5
@@ -201,6 +203,8 @@ def plot_n_effect_random(
         ("duration", durations),
     ]:
         plt.figure()
+        if measure[0] != "duration":
+            plt.ylim(0, 1)
         plt.plot(n_list, np.mean(measure[1], axis=1), label=measure[0])
         plt.fill_between(
             n_list, np.percentile(measure[1], 25, axis=1), np.percentile(measure[1], 75, axis=1), alpha=0.5
