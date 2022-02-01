@@ -49,4 +49,4 @@ default_n_generated_list = [50, 100, 200, 400, 600, 800, 1000, 1500, 2000]
 default_eval_rounds = 5
 default_n_list = [2, 3, 4, 5, 6, 7]
 
-quantization_factor = 10
+quantization_factor = 100
