@@ -49,15 +49,16 @@ def parse_from_dict(params):
     return criteria, coalitions, profiles, n_ground_truth, n_learning_set, mu
 
 
-def ncs(marks, criteria, coalitions, profiles):
+def ncs_single_peaked(marks, criteria, coalitions, profiles):
     """
     Returns the class of the instance by comparing to profiles
     see the paragraph "2.2. Non-compensatory sorting models" in:
         https://arxiv.org/pdf/1710.10098.pdf
     """
-    for h, profile in enumerate(profiles):
+    for h in range(0, len(profiles), 2):
+        lower_bound, upper_bound = profiles[h], profiles[h + 1]
         for i_coal, coalition in enumerate(coalitions):
-            if any(marks[i] < profile[i] for i in coalition):  # failed coalition
+            if any(marks[i] < lower_bound[i] or marks[i] > upper_bound[i] for i in coalition):  # failed coalition
                 if i_coal == len(coalitions) - 1:  # no more coalitions
                     return h
             else:  # passed coalition
@@ -82,7 +83,7 @@ def generate_one(criteria, coalitions, profiles, std=2):
     marks = np.array(profile) + np.random.randn(len(profile)) * std
     marks = np.clip(marks, 0, 20)
 
-    category = ncs(marks, criteria, coalitions, profiles)
+    category = ncs_single_peaked(marks, criteria, coalitions, profiles)
     return list(marks) + [category]
 
 
@@ -111,6 +112,7 @@ def generate_data(params: dict, verbose=False, balanced=True, save=True) -> [pd.
     if verbose:
         print("Generating learning set data...")
     learning_data = _generate_data(criteria, coalitions, profiles, n_learning_set, verbose=verbose, balanced=balanced)
+    correct_learning_data = learning_data.copy()
     learning_data["is_mistake"] = False
     # add assignment mistakes
     mistakes_indexes = np.random.choice(range(len(learning_data)), size=int(len(learning_data) * mu), replace=False)
@@ -130,7 +132,7 @@ def generate_data(params: dict, verbose=False, balanced=True, save=True) -> [pd.
     if save:
         os.makedirs(os.path.dirname(config.learning_data_path), exist_ok=True)
         learning_data.to_csv(config.learning_data_path, index=True)
-    return test_data, learning_data
+    return test_data, learning_data, correct_learning_data
 
 
 def _generate_data(criteria, coalitions, profiles, n_generated, verbose, balanced):
@@ -141,7 +143,7 @@ def _generate_data(criteria, coalitions, profiles, n_generated, verbose, balance
     for _ in tqdm(range(n_generated), disable=not verbose):
         instance = generate_one(criteria, coalitions, profiles)
         if balanced:
-            while counts[instance[-1]] >= np.ceil(n_generated / (len(profiles) + 1)):
+            while counts[instance[-1]] >= np.ceil(n_generated / (len(profiles)//2 + 1)):
                 instance = generate_one(criteria, coalitions, profiles)
             counts[instance[-1]] += 1
         data_list.append(instance)

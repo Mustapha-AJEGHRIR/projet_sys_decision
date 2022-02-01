@@ -12,7 +12,7 @@ from config import solution_saving_path, learning_data_path, dimacs_saving_path,
 import subprocess
 from itertools import combinations
 import time
-from data_generator import ncs
+from data_generator import ncs_single_peaked
 
 
 class MaxSATSolver:
@@ -78,9 +78,15 @@ class MaxSATSolver:
 
         C = lambda h: self.data.index[self.data["class"] == h]  # indexes of instances belonging to class h
 
-        # if student validates a criterion i with evaluation k, then another student with criterion k'>k validates this criterion surely
+        # if two students validate a criterion i with evaluation k and k'>k, then the mark k" where k <= k" <= k' must also validate i
         clauses_c1 = [
-            [x[i, h, kp], -x[i, h, k]] for h in range(1, p) for i in criteria for k in X[i] for kp in X[i] if k < kp
+            [x[i, h, kpp], -x[i, h, k], -x[i, h, kp]]
+            for h in range(1, p)
+            for i in criteria
+            for k in X[i]
+            for kp in X[i]
+            for kpp in X[i]
+            if k < kpp < kp
         ]
 
         # if student validates a criterion i wrt the profile b_h', then he must validate the criterion i wrt the profile b_h (h < h')
@@ -137,14 +143,31 @@ class MaxSATSolver:
         # Start the solver
         sol = self._exec_gophersat(self.dimacs_file, verbose=verbose)
 
+        # find the anchor
+        anchor_marks = [None for _ in range(self.n)]
+        for var, is_satisfied in list(sol["variables"].items())[: len(self.x)]:
+            if is_satisfied:
+                criterion, h, mark = var
+                anchor_marks[criterion] = mark
         # find profiles intervals
-        profiles_intervals = [[[0, 20] for _ in range(self.n)] for _ in range(self.p - 1)]
+        profiles_intervals = [[[0, 20] for _ in range(self.n)] for _ in range(self.p )]
         for var, is_satisfied in list(sol["variables"].items())[: len(self.x)]:
             criterion, h, mark = var
             if is_satisfied:  # marks validates criterion
                 profiles_intervals[h - 1][criterion][1] = min(profiles_intervals[h - 1][criterion][1], mark)
-            else:
-                profiles_intervals[h - 1][criterion][0] = max(profiles_intervals[h - 1][criterion][0], mark)
+                profiles_intervals[h][criterion][0] = max(profiles_intervals[h][criterion][0], mark)
+            elif anchor_marks[criterion] != None:
+                if mark > anchor_marks[criterion]:
+                    profiles_intervals[h][criterion][1] = min(profiles_intervals[h][criterion][1], mark)
+                else:
+                    profiles_intervals[h - 1][criterion][0] = max(profiles_intervals[h - 1][criterion][0], mark)
+        
+        for var, is_satisfied in list(sol["variables"].items())[: len(self.x)]:
+            criterion, h, mark = var
+            if is_satisfied:  # marks validates criterion
+                profiles_intervals[h - 1][criterion][1] = min(profiles_intervals[h - 1][criterion][1], mark)
+                profiles_intervals[h][criterion][0] = max(profiles_intervals[h][criterion][0], mark)
+        
         sol["profiles_intervals"] = profiles_intervals
 
         sol["sufficient_coalitions"] = {}  # {B: [h where B is sufficient at level h]}
@@ -205,7 +228,7 @@ class MaxSATSolver:
 
     def _predict_instance(self, marks, params):
         criteria, coalitions, profiles = params["criteria"], params["coalitions"], params["profiles_intervals"]
-        return ncs(marks, criteria, coalitions, profiles)
+        return ncs_single_peaked(marks, criteria, coalitions, profiles)
 
     def _clauses_to_dimacs(self, clauses, weights, numvar):
         # Convert a list of clauses to a DIMACS format
