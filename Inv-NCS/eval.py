@@ -7,11 +7,14 @@ from time import time
 from matplotlib import pyplot as plt
 from tqdm import tqdm
 import os
+import numpy as np
 
 default_n_generated_list = [200, 400, 600, 800, 1000, 1500, 2000, 3000]
 default_eval_rounds = 20
 default_n_list = [2, 3, 4, 5, 6, 7]
 output_folder = os.path.join(os.path.dirname(__file__), "output/")
+os.makedirs(output_folder + "/n_list", exist_ok=True)
+os.makedirs(output_folder + "/n_generated_list", exist_ok=True)
 
 
 def eval_parameters(params: dict, verbose_results=True, verbose_progress=False) -> tuple:
@@ -92,7 +95,7 @@ def multi_eval_parameters(
     mean_recall = sum(recalls) / n_rounds
     mean_f1 = sum(f1s) / n_rounds
     mean_duration = sum(durations) / n_rounds
-    return mean_accuracy, mean_precision, mean_recall, mean_f1, mean_duration
+    return accuracies, precisions, recalls, f1s, durations
 
 
 def plot_n_generated_effect_random(
@@ -131,23 +134,26 @@ def plot_n_generated_effect_random(
         recalls.append(rec)
         f1s.append(f1)
         durations.append(duration)
-    plt.plot(n_generated_list, accuracies, label="accuracy")
-    plt.plot(n_generated_list, precisions, label="precision")
-    plt.plot(n_generated_list, recalls, label="recall")
-    plt.plot(n_generated_list, f1s, label="f1")
-    plt.title("Effect of n_generated on performance number of criterias = {}".format(n))
-    plt.xlabel("n_generated")
-    plt.ylabel("score")
-    plt.legend()
-    plt.savefig(os.path.join(output_folder, "score_n_generated_effect.png"), dpi=300)
-    plt.show()
 
-    plt.plot(n_generated_list, durations)
-    plt.title("Duration of the for number of criterias = {}".format(n))
-    plt.ylabel("duration")
-    plt.xlabel("n_generated")
-    plt.savefig(os.path.join(output_folder, "duration_n_generated_effect.png"), dpi=300)
-    plt.show()
+    for measure in [
+        ("accuracy", accuracies),
+        ("precision", precisions),
+        ("recall", recalls),
+        ("f1", f1s),
+        ("duration", durations),
+    ]:
+        plt.figure()
+        plt.plot(n_generated_list, np.mean(measure[1], axis=1), label=measure[0])
+        plt.fill_between(
+            n_generated_list, np.percentile(measure[1], 25, axis=1), np.percentile(measure[1], 75, axis=1), alpha=0.5
+        )
+
+        plt.title(f"Effect of number of reference assignments on {measure[0]}. n_criterias={n}, p={p}")
+        plt.xlabel("Number of reference assignments")
+        plt.ylabel(measure[0])
+        plt.legend()
+        plt.savefig(os.path.join(output_folder, f"n_generated_list/{measure[0]}_n_generated_list_effect.png"), dpi=300)
+        # plt.show()
 
 
 def plot_n_effect_random(
@@ -186,20 +192,30 @@ def plot_n_effect_random(
         recalls.append(rec)
         f1s.append(f1)
         durations.append(duration)
-    plt.plot(n_list, accuracies, label="accuracy")
-    plt.plot(n_list, precisions, label="precision")
-    plt.plot(n_list, recalls, label="recall")
-    plt.plot(n_list, f1s, label="f1")
-    plt.title("Effect of n_generated on performance for n_generated = {}".format(n_generated))
-    plt.xlabel("number of criterias")
-    plt.ylabel("score")
-    plt.legend()
-    plt.savefig(os.path.join(output_folder, "score_n_effect.png"), dpi=300)
-    plt.show()
 
-    plt.plot(n_list, durations)
-    plt.title("Mean duration of solving for n_generated = {}".format(n_generated))
-    plt.ylabel("duration")
-    plt.xlabel("number of criterias")
-    plt.savefig(os.path.join(output_folder, "duration_n_effect.png"), dpi=300)
-    plt.show()
+    for measure in [
+        ("accuracy", accuracies),
+        ("precision", precisions),
+        ("recall", recalls),
+        ("f1", f1s),
+        ("duration", durations),
+    ]:
+        plt.figure()
+        plt.plot(n_list, np.mean(measure[1], axis=1), label=measure[0])
+        plt.fill_between(
+            n_list, np.percentile(measure[1], 25, axis=1), np.percentile(measure[1], 75, axis=1), alpha=0.5
+        )
+
+        plt.title(f"Effect of number of criterias on {measure[0]}. n_generated = {n_generated} & p = {p}")
+        plt.xlabel("number of criterias")
+        plt.ylabel(measure[0])
+        plt.legend()
+        plt.savefig(os.path.join(output_folder, f"n_list/{measure[0]}_n_list_effect.png"), dpi=300)
+        # plt.show()
+
+
+import warnings
+
+warnings.filterwarnings("ignore")
+plot_n_generated_effect_random()
+plot_n_effect_random()

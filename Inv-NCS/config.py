@@ -59,9 +59,10 @@ def get_random_params(n=9, p=3, n_learning_set=128, n_ground_truth=1000, min_max
         )
         if set([e for sublist in params["coalitions"] for e in sublist]) == set(params["criteria"]):
             break
+    params["coalitions"] = [[i] for i in range(n)]
     return params
 
 
 default_n_generated_list = [32, 64, 256, 512, 1024]
 default_n_list = [3, 5, 7, 11]
-default_eval_rounds = 5
+default_eval_rounds = 20
