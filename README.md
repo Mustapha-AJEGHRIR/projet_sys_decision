@@ -1,6 +1,6 @@
 # Report
 
-For a cleaner report, please take a look at a the report folder.
+For the official report, please take a look at a the report folder.
 
 # This is a project for decision systems
 
