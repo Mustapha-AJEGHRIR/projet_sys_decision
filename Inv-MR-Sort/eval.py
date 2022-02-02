@@ -1,5 +1,5 @@
 
-from distutils.log import error
+# from distutils.log import error
 
 # from sympy import solve
 from mip import MIPSolver
