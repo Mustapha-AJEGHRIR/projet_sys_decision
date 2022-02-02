@@ -210,8 +210,8 @@ class MaxSATSolver:
     def _clauses_to_dimacs(self, clauses, weights, numvar):
         # Convert a list of clauses to a DIMACS format
         # more info: http://www.maxsat.udl.cat/08/index.php?disp=requirements
-        dimacs = "c This is it\np wcnf " + str(numvar) + " " + str(len(clauses)) + "\n"  # Weighted Max-SAT
-        # dimacs = "c This is it\np wcnf " + str(numvar) + " " + str(len(clauses)) + " " + str(self.w_max) + "\n" # Weigthed Partial Max-SAT
+        # dimacs = "c This is it\np wcnf " + str(numvar) + " " + str(len(clauses)) + "\n"  # Weighted Max-SAT
+        dimacs = "c This is it\np wcnf " + str(numvar) + " " + str(len(clauses)) + " " + str(self.w_max) + "\n" # Weigthed Partial Max-SAT
         for clause, w in zip(clauses, weights):
             dimacs += str(w) + " " + " ".join(map(str, clause)) + " 0\n"
         return dimacs

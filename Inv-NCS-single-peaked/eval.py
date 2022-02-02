@@ -31,7 +31,7 @@ def eval_parameters(params: dict, verbose_results=True, verbose_progress=False) 
         tuple -- (accuracy, precision, recall, f1)
     """
 
-    data_test, data_train = generate_data(config.params, balanced=True, verbose=False, save=False)
+    data_test, data_train, _ = generate_data(config.params, balanced=True, verbose=False, save=False)
     test_classes = list(data_test["class"])
 
     solver = MaxSATSolver(data_train, None, dimacs_saving_path, gophersat_path)

@@ -109,7 +109,7 @@ def multi_eval_parameters(
 
 
 def plot_n_generated_effect_random(
-    n=9,
+    n=3,
     p=3,
     n_rounds=config.default_eval_rounds,
     n_generated_list=config.default_n_generated_list,
@@ -152,9 +152,10 @@ def plot_n_generated_effect_random(
         ("f1", f1s),
         ("duration", durations),
     ]:
-        plt.figure()
         if measure[0] != "duration":
             plt.ylim(0, 1)
+        else:
+            plt.figure()
         plt.plot(n_generated_list, np.mean(measure[1], axis=1), label=measure[0])
         plt.fill_between(
             n_generated_list, np.percentile(measure[1], 25, axis=1), np.percentile(measure[1], 75, axis=1), alpha=0.5
@@ -212,9 +213,10 @@ def plot_n_effect_random(
         ("f1", f1s),
         ("duration", durations),
     ]:
-        plt.figure()
         if measure[0] != "duration":
             plt.ylim(0, 1)
+        else:
+            plt.figure()
         plt.plot(n_list, np.mean(measure[1], axis=1), label=measure[0])
         plt.fill_between(
             n_list, np.percentile(measure[1], 25, axis=1), np.percentile(measure[1], 75, axis=1), alpha=0.5
@@ -229,8 +231,8 @@ def plot_n_effect_random(
 
 
 def plot_mu_effect_random(
-    n=3,
-    n_generated=10,
+    n=5,
+    n_generated=128,
     p=3,
     n_rounds=config.default_eval_rounds,
     mu_list=config.default_mu_list,
@@ -273,16 +275,17 @@ def plot_mu_effect_random(
         ("f1", f1s),
         ("duration", durations),
     ]:
-        plt.figure()
         if measure[0] != "duration":
             plt.ylim(0, 1)
+        else:
+            plt.figure()
         plt.plot(mu_list, np.mean(measure[1], axis=1), label=measure[0])
         plt.fill_between(
             mu_list, np.percentile(measure[1], 25, axis=1), np.percentile(measure[1], 75, axis=1), alpha=0.5
         )
 
-        plt.title(f"Effect of number of criterias on {measure[0]}. n_generated = {n_generated} & p = {p}")
-        plt.xlabel("number of criterias")
+        plt.title(f"Effect of noise on {measure[0]}. n_generated = {n_generated} & p = {p}")
+        plt.xlabel("noise percentage (mu)")
         plt.ylabel(measure[0])
         plt.legend()
         plt.savefig(os.path.join(output_folder, f"mu_list/{measure[0]}_mu_list_effect.png"), dpi=300)
