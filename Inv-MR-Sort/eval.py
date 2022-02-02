@@ -1,7 +1,7 @@
 
 from distutils.log import error
 
-from sympy import solve
+# from sympy import solve
 from mip import MIPSolver
 from data_generator import generate
 from instance_generation import mr_sort_correction
