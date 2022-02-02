@@ -15,7 +15,7 @@ gophersat_path = glob.glob(gophersat_dir + "/gophersat*")[0]
 params = {
     "criteria": list(range(3)),  # N
     "coalitions": [[0], [1], [2]],  # B
-    "profiles": [[10, 10, 10], [15, 15, 15]],  # p=2
+    "profiles": [[10, 10, 10], [15, 15, 15]],  # only evaluations 10 and 15 for each critierion are admitted
     "n_ground_truth": 1000,
     "n_learning_set": 50,
     "mu": 0.1,  # pourcentage of misclassified instances

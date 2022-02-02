@@ -158,8 +158,18 @@ After running the code (see next section), you could see the generated data in `
 
 ## Usage
 
-First start by adding the `gophersat` solver folder in the Inv-NCS folder, just like the structure shown above
-> Please refer to `config.py` to change the configuration that we have used.
+First start by adding the `gophersat` solver folder in the Inv-NCS folder, just like the structure shown above. Then head to `Inv-NCS/config.py` to modify the configuration we used.
+
+```python
+params = {
+    "criteria": list(range(3)),  # list of criterias
+    "coalitions": [[0, 1], [2]],  # list of sufficient coalitions
+    "profiles": [[10, 6, 11.2], [12.3, 15, 15]],  # list of profiles (p=2)
+    "n_ground_truth": 1000, # size of test set
+    "n_learning_set": 50, # size of learning set
+    "mu": 0.1,  # pourcentage of misclassified instances (of learning set)
+}
+```
 
 - To solve an Inv-NCS problem:
 
@@ -229,3 +239,28 @@ The effect of variating `mu` the pourcentage of misclassified alternatives.
 Performance|Duration(in s)
 :---:|:---:
 ![image](./assets/f1_mu_list_effect_ncs.png) | ![imsage](./assets/duration_mu_list_effect_ncs.png)
+
+# Inv-NCS-single-peaked
+
+We also extended the usage of Inv-NCS for single-peaked criterion, a.k.a where the "accepted" evaluations reside in an interval of values
+
+![](./assets/single-peaked.png)
+
+You can use that by modifying the profiles parameters in `Inv-NCS-single-peaked/config.py`
+
+```python
+params = {
+    "criteria": list(range(3)),  # list of criterias
+    "coalitions": [[0, 1], [2]],  # list of sufficient coalitions
+    "profiles": [[10, 10, 10], [15, 15, 15]],  # only evaluations 10 and 15 for each critierion are admitted
+    "n_ground_truth": 1000, # size of test set
+    "n_learning_set": 50, # size of learning set
+    "mu": 0.1,  # pourcentage of misclassified instances (of learning set)
+}
+```
+
+and run Inv-NCS the same way as before:
+
+```bash
+python Inv-NCS-single-peaked/main.py
+```
